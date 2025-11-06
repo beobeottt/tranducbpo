@@ -1,0 +1,139 @@
+===============================================
+CÁC BẢNG DỮ LIỆU MONGODB CHO DỰ ÁN TRANDUCBPO
+===============================================
+
+📊 DANH SÁCH CÁC COLLECTION CẦN TẠO:
+
+1. USERS (Người dùng)
+2. PRODUCTS (Sản phẩm) 
+3. ORDERS (Đơn hàng)
+4. PAYMENTS (Thanh toán)
+5. CART_ITEMS (Giỏ hàng)
+
+===============================================
+CHI TIẾT CÁC COLLECTION
+===============================================
+
+1. COLLECTION: users
+   - Mô tả: Lưu trữ thông tin người dùng hệ thống
+   - Fields:
+     * _id: ObjectId (auto-generated)
+     * fullname: String (required) - Họ tên đầy đủ
+     * email: String (required, unique) - Email đăng nhập
+     * password: String (required) - Mật khẩu đã mã hóa
+     * shippingAddress: String (optional) - Địa chỉ giao hàng
+     * gender: Enum (optional) - Giới tính: "Male" | "FeMale"
+     * role: Enum (optional) - Vai trò: "User" | "Admin"
+     * Điểm tích luỹ: float 10% of 1 bill 
+     * favourites: [ObjectId] (optional) - Danh sách sản phẩm yêu thích
+     * createdAt: Date (auto-generated)
+     * updatedAt: Date (auto-generated)
+
+2. COLLECTION: products
+   - Mô tả: Lưu trữ thông tin sản phẩm
+   - Fields:
+     * _id: ObjectId (auto-generated)
+     * name: String (required) - Tên sản phẩm
+     * description: String (optional) - Mô tả sản phẩm
+     * price: Number (required) - Giá sản phẩm
+     * quantity: Number (required) - Số lượng tồn kho
+     * typeProduct: Enum (required) - Loại sản phẩm: "New Product" | "Best Seller"
+     * rate: enum/float
+     * comment?: string
+     * url?: object[]: a lot image or video
+     * createdAt: Date (auto-generated)
+     * updatedAt: Date (auto-generated)
+
+3. COLLECTION: orders
+   - Mô tả: Lưu trữ thông tin đơn hàng
+   - Fields:
+     * _id: ObjectId (auto-generated)
+     * items: Array (required) - Danh sách sản phẩm trong đơn hàng
+       - productId: String (required) - ID sản phẩm
+       - productName: String (required) - Tên sản phẩm
+       - price: Number (required) - Giá tại thời điểm mua
+       - quantity: Number (required) - Số lượng mua
+     * totalPrice: Number (required) - Tổng giá trị đơn hàng
+     * status: Enum (required) - Trạng thái: "Pending" | "Paid" | "Shipped" | "Completed" | "Cancelled"
+     * createdAt: Date (auto-generated)
+     * updatedAt: Date (auto-generated)
+
+4. COLLECTION: payments
+   - Mô tả: Lưu trữ thông tin thanh toán
+   - Fields:
+     * _id: ObjectId (auto-generated)
+     * method: String (required) - Phương thức thanh toán
+     * date: Date (required) - Ngày thanh toán
+     * items: [ObjectId] (optional) - Tham chiếu đến CartItem
+
+5. COLLECTION: cart_items
+   - Mô tả: Lưu trữ các item trong giỏ hàng
+   - Fields:
+     * _id: ObjectId (auto-generated)
+     * productId: String (required) - ID sản phẩm
+     * productName: String (required) - Tên sản phẩm
+     * price: Number (required) - Giá sản phẩm
+     * quantity: Number (required) - Số lượng
+     * url: String (optional) - Link ảnh sản phẩm
+6. COLLECTION: Comment
+- Mô tả: Comment cho guest and User
+- Fields:
+* userId?: string
+* comment: string
+* proudctId: string
+===============================================
+QUAN HỆ GIỮA CÁC COLLECTION
+===============================================
+
+- users.favourites → products._id (Many-to-Many)
+- payments.items → cart_items._id (One-to-Many)
+- orders.items (Embedded documents - không có reference)
+
+===============================================
+ENUMS ĐƯỢC SỬ DỤNG
+===============================================
+
+Gender Enum:
+- Male
+- FeMale
+
+User Role Enum:
+- User
+- Admin  
+- Manager
+
+Product Type Enum:
+- New Product
+- Best Seller
+
+Order Status Enum:
+- Pending
+- Paid
+- Shipped
+- Completed
+- Cancelled
+
+===============================================
+GHI CHÚ QUAN TRỌNG
+===============================================
+
+1. Tất cả collection đều sử dụng Mongoose Schema với NestJS
+2. Timestamps được tự động thêm vào: users, products, orders
+3. ObjectId được sử dụng cho các reference giữa collections
+4. Email trong users collection phải unique
+5. Các enum được định nghĩa trong common/enums/
+6. Sử dụng @Prop decorator để định nghĩa schema properties
+
+===============================================
+
+
+Work Today
+*** Thêm theme
+*** thêm trang sản phẩm ngoài trang homePage để hiện từng danh mục: cách vào nhấn xem thêm trong phần dưới của 1 số sản phẩm nổi bật hoặc nhân vào các button
+*** login bằng social khác
+*** guest muốn pay generate ra mật khẩu send về Email, cho nhập email trước
+*** tìm cách làm việc với docker
+*** bổ sung comment, rate, điểm tích luỹ
+*** change password and forgot password
+*** cập nhập cart theo realtime
+*** add discount code when we want to pay for all bill

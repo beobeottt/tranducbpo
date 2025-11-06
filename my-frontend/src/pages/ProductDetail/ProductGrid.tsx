@@ -1,0 +1,170 @@
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import axiosInstance from "../../api/axios";
+import { addToCart } from "../../utils/cartUtils";
+import { Product } from "../../types/product";
+
+
+interface ProductGridProps {
+  products: Product[];
+  search?: string;
+}
+
+const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
+  const [addedMessage, setAddedMessage] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"All" | "New Product" | "Best Seller">("All");
+
+  // --- Bộ lọc sản phẩm theo search + type ---
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch = product.productName.toLowerCase().includes(search.toLowerCase());
+    const matchesType =
+      filter === "All" ? true : product.typeProduct === filter;
+    return matchesSearch && matchesType;
+  });
+
+  const handleAddToCart = async (product: Product) => {
+    const token = localStorage.getItem("token");
+
+    const cartItem = {
+      productId: product._id,
+      productName: product.productName,
+      price: product.price,
+      quantity: 1,
+      url: product.img,
+    };
+
+    if (token) {
+      try {
+        await axiosInstance.post("http://localhost:3000/cart", cartItem, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setAddedMessage(`✅ ${cartItem.productName} đã được thêm vào giỏ hàng (server)!`);
+      } catch (err: any) {
+        console.error("❌ Lỗi khi thêm vào giỏ server:", err);
+        setAddedMessage("❌ Không thể thêm sản phẩm vào giỏ hàng (server)!");
+      }
+    } else {
+      const localCart: any[] = JSON.parse(localStorage.getItem("cart") || "[]");
+      const existing = localCart.find((item) => item.productId === cartItem.productId);
+
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        localCart.push(cartItem);
+      }
+
+      localStorage.setItem("cart", JSON.stringify(localCart));
+      setAddedMessage(`🛒 ${cartItem.productName} đã được thêm vào giỏ hàng (local)!`);
+    }
+
+    setTimeout(() => setAddedMessage(null), 2000);
+  };
+
+  return (
+    <section className="max-w-7xl mx-auto py-10 px-4">
+      <h2 className="text-xl font-semibold mb-4">Sản phẩm nổi bật</h2>
+
+      {/* Thông báo */}
+      {addedMessage && (
+        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-center animate-fadeIn">
+          {addedMessage}
+        </div>
+      )}
+
+      {/* Bộ lọc */}
+      <div className="flex gap-3 mb-6">
+        <button
+          onClick={() => setFilter("All")}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            filter === "All"
+              ? "bg-orange-500 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          Tất cả
+        </button>
+
+        <button
+          onClick={() => setFilter("New Product")}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            filter === "New Product"
+              ? "bg-green-500 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          New Product
+        </button>
+
+        <button
+          onClick={() => setFilter("Best Seller")}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            filter === "Best Seller"
+              ? "bg-yellow-500 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          Best Seller
+        </button>
+      </div>
+
+      {filteredProducts.length === 0 ? (
+        <p className="text-gray-500">Không tìm thấy sản phẩm nào.</p>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          {filteredProducts.map((product) => (
+            <div
+              key={product._id}
+              className="bg-white rounded-xl shadow hover:shadow-lg transition p-4 flex flex-col"
+            >
+              {/* Badge */}
+              <div className="flex justify-between mb-2">
+                <span
+                  className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                    product.typeProduct === "New Product"
+                      ? "bg-green-100 text-green-600"
+                      : "bg-yellow-100 text-yellow-600"
+                  }`}
+                >
+                  {product.typeProduct}
+                </span>
+                <span className="text-gray-400 text-xs">SL: {product.quantity}</span>
+              </div>
+
+              {/* Image */}
+              <Link to={`/product/${product._id}`}>
+                <img
+                  src={product.img || "https://via.placeholder.com/300?text=No+Image"}
+                  alt={product.productName}
+                  className="w-full h-40 object-cover rounded-lg mb-3 hover:opacity-90 transition"
+                />
+              </Link>
+
+              {/* Info */}
+              <Link
+                to={`/product/${product._id}`}
+                className="hover:text-orange-600 transition"
+              >
+                <h3 className="text-sm font-semibold mb-1 line-clamp-2">
+                  {product.productName}
+                </h3>
+              </Link>
+              <p className="text-orange-600 font-bold mb-2">
+                {product.price.toLocaleString()}₫
+              </p>
+
+              {/* Button */}
+              <button
+                onClick={() => handleAddToCart(product)}
+                className="mt-auto bg-orange-500 text-white py-1.5 rounded-lg hover:bg-orange-600 transition"
+              >
+                🛒 Thêm vào giỏ
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+};
+
+export default ProductGrid;
