@@ -26,7 +26,7 @@ const AdminProducts = () => {
     typeProduct: "New Product",
   });
 
-  // ✅ Lấy danh sách sản phẩm
+
   const fetchProducts = async () => {
     setLoading(true);
     try {
@@ -44,12 +44,12 @@ const AdminProducts = () => {
     fetchProducts();
   }, []);
 
-  // ✅ Xử lý thay đổi input
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ✅ Mở modal để thêm sản phẩm
+
   const handleAdd = () => {
     setEditingProduct(null);
     setFormData({
@@ -62,14 +62,14 @@ const AdminProducts = () => {
     setIsModalOpen(true);
   };
 
-  // ✅ Mở modal để sửa sản phẩm
+
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setFormData(product);
     setIsModalOpen(true);
   };
 
-  // ✅ Xóa sản phẩm
+
   const handleDelete = async (id?: string) => {
     if (!id) return;
     if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này không?")) return;
@@ -82,16 +82,16 @@ const AdminProducts = () => {
     }
   };
 
-  // ✅ Gửi form thêm hoặc sửa sản phẩm
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (editingProduct) {
-        // --- Sửa sản phẩm ---
+
         await axiosInstance.patch(`http://localhost:3000/product/${editingProduct._id}`, formData);
         alert("✅ Cập nhật sản phẩm thành công!");
       } else {
-        // --- Thêm sản phẩm mới ---
+
         await axiosInstance.post("http://localhost:3000/product", formData);
         alert("✅ Thêm sản phẩm thành công!");
       }
@@ -118,7 +118,6 @@ const AdminProducts = () => {
         </button>
       </div>
 
-      {/* Bảng danh sách sản phẩm */}
       <table className="min-w-full bg-white shadow-md rounded">
         <thead>
           <tr className="bg-gray-200 text-left">
@@ -157,7 +156,7 @@ const AdminProducts = () => {
         </tbody>
       </table>
 
-      {/* Modal Form */}
+
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 shadow-lg">

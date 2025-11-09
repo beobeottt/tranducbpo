@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom'; 
 import { CreditCard, Lock, Shield, CheckCircle, X, Truck, DollarSign, ShoppingCart } from 'lucide-react';
+import axiosInstance from '../api/axios';
 
 interface CartItemType {
   _id?: string;
@@ -24,7 +25,9 @@ const PaymentPage: React.FC = () => {
   const [discountCode, setDiscountCode] = useState('');
   const [discountError, setDiscountError] = useState('');
   const [discountApplied, setDiscountApplied] = useState(0);
+  const [discountPercent, setDiscountPercent] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState('credit-card');
+  const [loadingDiscount, setLoadingDiscount] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
   const [cardName, setCardName] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
@@ -49,20 +52,33 @@ const PaymentPage: React.FC = () => {
     return v.length >= 2 ? v.slice(0, 2) + '/' + v.slice(2, 4) : v;
   };
 
-  const applyDiscount = (e: React.FormEvent) => {
+  const applyDiscount = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!discountCode.trim()) return;
 
-    const validCodes: Record<string, number> = { SAVE10: 0.1, SAVE20: 0.2 };
-    const code = discountCode.toUpperCase().trim();
-    const discountRate = validCodes[code] ?? 0;
-
-    if (discountRate > 0) {
-      setDiscountApplied(total * discountRate);
+    try {
+      setLoadingDiscount(true);
       setDiscountError('');
-    } else {
-      setDiscountError('Mã giảm giá không hợp lệ');
+
+      const res = await axiosInstance.get(`http://localhost:3000/discount/code/${discountCode.toUpperCase()}`);
+      const discount = res.data;
+
+      // Calculate discount
+      const discountValue =
+        discount.discountType === 'percentage'
+          ? total * (discount.value / 100)
+          : discount.value;
+
+      setDiscountApplied(discountValue);
+      setDiscountPercent(discount.value);
+      setDiscountError('');
+    } catch (err: any) {
+      console.error(err);
       setDiscountApplied(0);
+      setDiscountPercent(0);
+      setDiscountError('Mã giảm giá không hợp lệ hoặc đã hết hạn.');
+    } finally {
+      setLoadingDiscount(false);
     }
   };
 
@@ -81,7 +97,7 @@ const PaymentPage: React.FC = () => {
           <h3 className="text-lg font-medium text-gray-900 mb-2">Không có sản phẩm</h3>
           <p className="text-gray-500 mb-4">Bạn chưa chọn sản phẩm nào để thanh toán.</p>
           <button
-            onClick={() => navigate(-1)} // DÙNG navigate
+            onClick={() => navigate(-1)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
             Quay lại giỏ hàng

@@ -11,6 +11,7 @@ import { OrderModule } from './order/order.module';
 import { AuthModule } from './auth/auth.module';
 import { MailController } from './mail/mail.controller';
 import { MailModule } from './mail/mail.module';
+import { DiscountModule } from './discount/discount.module';
 import databaseConfig from './config/database.config';
 
 @Module({
@@ -33,6 +34,7 @@ import databaseConfig from './config/database.config';
     OrderModule,
     AuthModule,
     MailModule,
+    DiscountModule,
   ],
   controllers: [AppController, MailController],
   providers: [AppService],
