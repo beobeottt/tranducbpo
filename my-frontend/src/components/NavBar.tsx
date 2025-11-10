@@ -80,6 +80,7 @@ const NavBar = () => {
               {(user.fullname || user.email || "U").charAt(0).toUpperCase()}
             </Link>
           ) : (
+
             <div className="hidden md:flex items-center gap-3 text-sm font-medium">
               <Link to="/login" className="hover:underline hover:text-gray-200 transition">
                 Đăng nhập

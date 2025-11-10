@@ -9,10 +9,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy'; // ✅ Thêm dòng này
 import { GoogleStrategy } from './google.strategy';
 import { UserModule } from 'src/user/user.module';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
     UserModule,
+    MailModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       inject: [ConfigService],
@@ -26,7 +28,7 @@ import { UserModule } from 'src/user/user.module';
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy, JwtStrategy], // ✅ Thêm JwtStrategy vào providers
-  exports: [AuthService, JwtStrategy, PassportModule], // ✅ export để nơi khác có thể dùng @UseGuards(JwtAuthGuard)
+  providers: [AuthService, JwtStrategy, GoogleStrategy, JwtStrategy], 
+  exports: [AuthService, JwtStrategy, PassportModule],
 })
 export class AuthModule {}

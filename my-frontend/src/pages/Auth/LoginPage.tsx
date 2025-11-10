@@ -12,7 +12,6 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // XỬ LÝ ĐĂNG NHẬP EMAIL/PASSWORD
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -32,8 +31,9 @@ const LoginPage: React.FC = () => {
 
   // XỬ LÝ GOOGLE LOGIN
   const handleGoogleLogin = () => {
-    // Redirect đến backend NestJS
     window.location.href = "http://localhost:3000/auth/google";
+    window.location.href = `${process.env.VITE_API_URL || "http://localhost:3000"}/auth/google`;
+
   };
 
   return (

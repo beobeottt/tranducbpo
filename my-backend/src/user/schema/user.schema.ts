@@ -5,13 +5,13 @@ import { Product } from 'src/product/schema/product.schema';
 
 export type UserDocument = User & Document;
 
-@Schema({timestamps: true})
+@Schema({ timestamps: true })
 export class User {
-    
-    @Prop({required: true})
+
+    @Prop({ required: true })
     fullname: string;
 
-    @Prop({required: true, unique: true})
+    @Prop({ required: true, unique: true })
     email: string;
 
     @Prop()
@@ -23,13 +23,20 @@ export class User {
     @Prop()
     gender?: Gender;
 
-    @Prop({default: 0})
+    @Prop({ default: 0 })
     point?: number;
 
     @Prop()
     role?: string;
 
-    @Prop({type: [{type: mongoose.Schema.Types.ObjectId, ref: 'product'}]})
+    @Prop()
+    avatar?: string;
+
+    @Prop()
+    googleId?: string;
+
+
+    @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'product' }] })
     favourites: Product[];
 }
 

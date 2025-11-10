@@ -1,17 +1,24 @@
-// src/auth/auth.controller.ts
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
-import { Response } from 'express'; // THÊM IMPORT NÀY
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
   constructor(
-    private authService: AuthService,
-    private jwtService: JwtService,
+    private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
   ) {}
 
   @Post('/register')
@@ -20,7 +27,9 @@ export class AuthController {
   }
 
   @Post('/login')
-  async login(@Body() loginDto: LoginDto): Promise<{ token: string; user: any }> {
+  async login(
+    @Body() loginDto: LoginDto,
+  ): Promise<{ token: string; user: any }> {
     return this.authService.login(loginDto);
   }
 
@@ -32,29 +41,26 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  googleAuth() {}
+  async googleAuth() {
+    // Redirect handled by Google
+  }
 
-
-@Get('google/callback')
+  @Get('google/callback')
 @UseGuards(AuthGuard('google'))
 async googleCallback(@Req() req: any, @Res() res: Response) {
   try {
-    const { user } = req;
-
+    const user = req.user;
     if (!user?.email) {
       return res.status(400).send('Missing user data from Google');
     }
-
-    let dbUser = await this.authService.findByEmail(user.email);
-    if (!dbUser) {
-      dbUser = await this.authService.createGoogleUser(user);
-    }
-
-    const jwt = this.jwtService.sign({ sub: dbUser._id, email: dbUser.email });
-    res.redirect(`http://localhost:3001/auth/success?token=${jwt}`);
+    console.log('Google user data:', user);
+    const { token } = await this.authService.createGoogleUser(user);
+    console.log('Generated token:', token);
+    return res.redirect(`http://localhost:3001/auth/success?token=${token}`);
   } catch (error) {
     console.error('Google callback error:', error);
-    res.status(500).send('Authentication failed');
+    return res.status(500).send('Authentication failed');
   }
 }
+
 }

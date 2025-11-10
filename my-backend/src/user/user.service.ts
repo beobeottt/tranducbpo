@@ -14,14 +14,11 @@ export class UserService {
     private readonly userModel: Model<UserDocument>,
   ) {}
 
-    async create(dto: CreateUserDto): Promise<UserDocument>;
-    async create(dto: CreateGoogleUserDto): Promise<UserDocument>;
-    async create(dto: any): Promise<UserDocument> {
+    async create(dto: CreateUserDto | CreateGoogleUserDto): Promise<UserDocument> {
   try {
     const exists = await this.userModel.findOne({ email: dto.email }).exec();
-    if (exists) {
-      return exists;
-    }
+    if (exists) return exists;
+
     const created = new this.userModel(dto);
     return await created.save();
   } catch (error) {
@@ -29,9 +26,6 @@ export class UserService {
     throw error;
   }
 }
-
-
-
   // Tìm tất cả
   async findAll(): Promise<UserDocument[]> {
     return this.userModel.find().exec();

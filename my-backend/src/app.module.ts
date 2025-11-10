@@ -13,18 +13,36 @@ import { MailController } from './mail/mail.controller';
 import { MailModule } from './mail/mail.module';
 import { DiscountModule } from './discount/discount.module';
 import databaseConfig from './config/database.config';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig], // load config from ./config/database.config.ts
+      load: [databaseConfig], 
+    }),
+    MailerModule.forRoot({
+      transport: {
+        service: 'gmail',
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_PASS,
+        },
+      },
+      defaults: {
+        from: '"TGL Shop" <no-reply@tglshop.com>',
+      },
+      template: {
+        dir: __dirname + '/templates',
+        adapter: new HandlebarsAdapter(),
+      },
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('database.uri'), // 👈 key from database.config.ts
+        uri: configService.get<string>('database.uri'), 
       }),
     }),
     UserModule,
