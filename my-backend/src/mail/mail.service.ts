@@ -1,19 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class MailService {
-  constructor(private readonly mailerService: MailerService) {}
+  private transporter: nodemailer.Transporter;
 
-  async sendUserPassword(email: string, password: string, name: string) {
-    await this.mailerService.sendMail({
-      to: email,
-      subject: 'Welcome! Your temporary password',
-      html: `
-        <h2>Hi ${name}, welcome to our app 🎉</h2>
-        <p>Your temporary password is: <b>${password}</b></p>
-        <p>Please log in and change it as soon as possible.</p>
-      `,
+  constructor() {
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
     });
+  }
+
+  async sendPasswordEmail(to: string, password: string, name?: string) {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to,
+      subject: 'Your auto-generated password',
+      text: `Hello ${name || 'User'},\n\nHere is your auto-generated password: ${password}\n\nPlease log in and change it as soon as possible.`,
+    };
+
+    await this.transporter.sendMail(mailOptions);
+    console.log(`✅ Email sent to ${to}`);
   }
 }

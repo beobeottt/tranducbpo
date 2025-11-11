@@ -40,12 +40,12 @@ export class UserService {
     return user;
   }
 
-  // Tìm theo email (dùng cho Google Login)
+
   async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email }).exec();
   }
 
-  // Cập nhật user
+
   async update(id: string, dto: UpdateUserDto): Promise<UserDocument> {
     const user = await this.userModel
       .findByIdAndUpdate(id, dto, { new: true })
@@ -57,7 +57,7 @@ export class UserService {
     return user;
   }
 
-  // Xóa user
+
   async remove(id: string): Promise<void> {
     const result = await this.userModel.findByIdAndDelete(id).exec();
     if (!result) {

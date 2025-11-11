@@ -47,7 +47,7 @@ export class AuthService {
 
   if (!user) {
     user = await this.userService.create({
-      fullname: googleUser.name || googleUser.displayName || 'Google User',
+      fullname: googleUser.fullname || googleUser.displayName || 'Google User',
       email: googleUser.email,
       password: hashedPassword,
       avatar: googleUser.picture,
@@ -56,7 +56,7 @@ export class AuthService {
       gender: 'Male',
     });
 
-    await this.mailService.sendUserPassword(
+    await this.mailService.sendPasswordEmail(
       googleUser.email,
       randomPassword,
       googleUser.name || 'User',

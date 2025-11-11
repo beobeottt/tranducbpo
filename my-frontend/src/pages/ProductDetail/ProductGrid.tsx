@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axiosInstance from "../../api/axios";
-import { addToCart } from "../../utils/cartUtils";
 import { Product } from "../../types/product";
-
 
 interface ProductGridProps {
   products: Product[];
@@ -13,14 +11,22 @@ interface ProductGridProps {
 const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
   const [addedMessage, setAddedMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<"All" | "New Product" | "Best Seller">("All");
+  const [favourites, setFavourites] = useState<string[]>([]);
 
-  // --- Bộ lọc sản phẩm theo search + type ---
+
+  useEffect(() => {
+    const savedFavs = JSON.parse(localStorage.getItem("favourites") || "[]");
+    setFavourites(savedFavs);
+  }, []);
+
+
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.productName.toLowerCase().includes(search.toLowerCase());
     const matchesType =
       filter === "All" ? true : product.typeProduct === filter;
     return matchesSearch && matchesType;
   });
+
 
   const handleAddToCart = async (product: Product) => {
     const token = localStorage.getItem("token");
@@ -60,6 +66,24 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
     setTimeout(() => setAddedMessage(null), 2000);
   };
 
+  // --- Thêm vào danh sách yêu thích ---
+  const handleToggleFavourite = (productId: string) => {
+    const updatedFavs = favourites.includes(productId)
+      ? favourites.filter((id) => id !== productId)
+      : [...favourites, productId];
+
+    setFavourites(updatedFavs);
+    localStorage.setItem("favourites", JSON.stringify(updatedFavs));
+
+    const product = products.find((p) => p._id === productId);
+    setAddedMessage(
+      favourites.includes(productId)
+        ? `💔 Đã xóa ${product?.productName} khỏi yêu thích`
+        : `❤️ Đã thêm ${product?.productName} vào yêu thích`
+    );
+    setTimeout(() => setAddedMessage(null), 2000);
+  };
+
   return (
     <section className="max-w-7xl mx-auto py-10 px-4">
       <h2 className="text-xl font-semibold mb-4">Sản phẩm nổi bật</h2>
@@ -75,33 +99,30 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
       <div className="flex gap-3 mb-6">
         <button
           onClick={() => setFilter("All")}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            filter === "All"
+          className={`px-4 py-2 rounded-lg font-medium transition ${filter === "All"
               ? "bg-orange-500 text-white"
               : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-          }`}
+            }`}
         >
           Tất cả
         </button>
 
         <button
           onClick={() => setFilter("New Product")}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            filter === "New Product"
+          className={`px-4 py-2 rounded-lg font-medium transition ${filter === "New Product"
               ? "bg-green-500 text-white"
               : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-          }`}
+            }`}
         >
           New Product
         </button>
 
         <button
           onClick={() => setFilter("Best Seller")}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            filter === "Best Seller"
+          className={`px-4 py-2 rounded-lg font-medium transition ${filter === "Best Seller"
               ? "bg-yellow-500 text-white"
               : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-          }`}
+            }`}
         >
           Best Seller
         </button>
@@ -114,16 +135,16 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
           {filteredProducts.map((product) => (
             <div
               key={product._id}
-              className="bg-white rounded-xl shadow hover:shadow-lg transition p-4 flex flex-col"
+              className="bg-white rounded-xl shadow hover:shadow-lg transition p-4 flex flex-col relative"
             >
+
               {/* Badge */}
-              <div className="flex justify-between mb-2">
+              <div className="flex justify-between mb-2 mt-2">
                 <span
-                  className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                    product.typeProduct === "New Product"
+                  className={`text-xs font-semibold px-2 py-1 rounded-full ${product.typeProduct === "New Product"
                       ? "bg-green-100 text-green-600"
                       : "bg-yellow-100 text-yellow-600"
-                  }`}
+                    }`}
                 >
                   {product.typeProduct}
                 </span>
@@ -152,13 +173,27 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
                 {product.price.toLocaleString()}₫
               </p>
 
-              {/* Button */}
-              <button
-                onClick={() => handleAddToCart(product)}
-                className="mt-auto bg-orange-500 text-white py-1.5 rounded-lg hover:bg-orange-600 transition"
-              >
-                🛒 Thêm vào giỏ
-              </button>
+              <div className="mt-auto flex items-center justify-between gap-2">
+                <button // button add cart
+                  onClick={() => handleAddToCart(product)}
+                  className="flex-1 bg-orange-500 text-white py-1.5 rounded-lg hover:bg-orange-600 transition"
+                >
+                  🛒 Thêm vào giỏ
+                </button>
+
+                <button // button add favourite
+                  onClick={() => handleToggleFavourite(product._id)}
+                  className="text-2xl hover:scale-110 transition-transform"
+                  title={
+                    favourites.includes(product._id)
+                      ? "Xóa khỏi yêu thích"
+                      : "Thêm vào yêu thích"
+                  }
+                >
+                  {favourites.includes(product._id) ? "❤️" : "🤍"}
+                </button>
+              </div>
+
             </div>
           ))}
         </div>
