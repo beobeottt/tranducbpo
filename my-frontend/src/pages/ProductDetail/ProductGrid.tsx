@@ -100,7 +100,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
         <button
           onClick={() => setFilter("All")}
           className={`px-4 py-2 rounded-lg font-medium transition ${filter === "All"
-              ? "bg-orange-500 text-white"
+              ? "bg-gradient-to-b from-purple-600 to-sky-200 text-white"
               : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
         >
@@ -110,7 +110,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
         <button
           onClick={() => setFilter("New Product")}
           className={`px-4 py-2 rounded-lg font-medium transition ${filter === "New Product"
-              ? "bg-green-500 text-white"
+              ? "bg-gradient-to-b from-sky-300 to-pink-300 text-white"
               : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
         >
@@ -120,7 +120,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
         <button
           onClick={() => setFilter("Best Seller")}
           className={`px-4 py-2 rounded-lg font-medium transition ${filter === "Best Seller"
-              ? "bg-yellow-500 text-white"
+              ? "bg-gradient-to-b from-pink-300 to-teal-300 text-white"
               : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
         >
@@ -169,14 +169,14 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
                   {product.productName}
                 </h3>
               </Link>
-              <p className="text-orange-600 font-bold mb-2">
+              <p className="text-sky-400 font-bold mb-2">
                 {product.price.toLocaleString()}₫
               </p>
 
               <div className="mt-auto flex items-center justify-between gap-2">
                 <button // button add cart
                   onClick={() => handleAddToCart(product)}
-                  className="flex-1 bg-orange-500 text-white py-1.5 rounded-lg hover:bg-orange-600 transition"
+                  className="flex-1 bg-blue-700 text-white py-1.5 rounded-lg hover:bg-orange-600 transition"
                 >
                   🛒 Thêm vào giỏ
                 </button>
