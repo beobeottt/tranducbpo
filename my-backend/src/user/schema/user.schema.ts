@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 import { Gender } from 'src/common/enums/gender.enum';
 import { Product } from 'src/product/schema/product.schema';
 
@@ -37,7 +37,7 @@ export class User {
 
 
     @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'product' }] })
-    favourites: Product[];
+    favourites: Types.ObjectId[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

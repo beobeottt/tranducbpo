@@ -14,7 +14,7 @@ import { Link } from "react-router-dom";
 interface Brand {
   id: string;
   name: string;
-  logo: string; // URL logo
+  logo: string;
   icon: React.ReactNode;
   href: string;
 }
