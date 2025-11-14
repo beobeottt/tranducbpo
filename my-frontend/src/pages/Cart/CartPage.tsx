@@ -14,15 +14,22 @@ interface CartItemType {
   price: number;
   quantity: number;
   status?: string;
-  guestId?: string; 
+  guestId?: string;
 }
 
 const CartPage: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItemType[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [email, setEmail] = useState("");
+
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [fullname, setFullname] = useState("");
+  const [address, setAddress] = useState("");
+
+  const navigate = useNavigate();
 
   const getKey = (item: CartItemType): string => {
     if (item._id) return `srv_${item._id}`;
@@ -36,26 +43,24 @@ const CartPage: React.FC = () => {
 
     try {
       if (token) {
-
         const res = await axiosInstance.get("/cart", {
-          headers: { auth: `Bearer ${token}` }, // have some problem with get token
+          headers: { Authorization: `Bearer ${token}` },
         });
         setCartItems(res.data);
       } else {
-
         const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
         setCartItems(localCart);
       }
     } catch (err: any) {
       console.error("Lỗi khi tải giỏ hàng:", err);
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        window.location.reload();
-      }
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchCart();
+  }, []);
 
   const handleDelete = async (key: string) => {
     const token = localStorage.getItem("token");
@@ -84,7 +89,6 @@ const CartPage: React.FC = () => {
     }
   };
 
-
   const handleSelect = (key: string, selected: boolean) => {
     setSelectedKeys((prev) => {
       const newSet = new Set(prev);
@@ -92,7 +96,6 @@ const CartPage: React.FC = () => {
       return newSet;
     });
   };
-
 
   const toggleSelectAll = () => {
     if (selectedKeys.size === cartItems.length) {
@@ -102,55 +105,73 @@ const CartPage: React.FC = () => {
     }
   };
 
-
   const selectedTotal = cartItems
     .filter((item) => selectedKeys.has(getKey(item)))
     .reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-
+  // 🔥 Nhấn thanh toán -> mở popup nhập email
   const handleCheckout = () => {
     if (selectedKeys.size === 0) {
       alert("Vui lòng chọn ít nhất một sản phẩm!");
       return;
     }
 
-    const itemsToPay = cartItems.filter((item) =>
-      selectedKeys.has(getKey(item))
-    );
-
-    navigate("/payment", {
-      state: { cartItems: itemsToPay, total: selectedTotal },
-    });
+    setShowEmailModal(true);
   };
 
-
-  useEffect(() => {
-    fetchCart();
-  }, []);
-
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const guestId = localStorage.getItem("guestId");
-
-    if (token && guestId) {
-      const sync = async () => {
-        try {
-          await axiosInstance.post(
-            "/cart/sync",
-            { guestId },
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          localStorage.removeItem("guestId");
-          fetchCart();
-        } catch (err) {
-          console.error("Sync thất bại:", err);
-        }
-      };
-      sync();
+  // 🟩 Check email
+  const checkEmail = async () => {
+    if (!email) {
+      alert("Vui lòng nhập email!");
+      return;
     }
-  }, []);
 
+    try {
+      const res = await axiosInstance.post("/auth/check-email", { email });
+
+      if (res.data.exists) {
+        alert("Email đã đăng ký. Vui lòng đăng nhập!");
+        navigate("/login", { state: { email } });
+      } else {
+        // Email chưa có -> hiện form đăng ký nhanh
+        setShowRegisterForm(true);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi khi kiểm tra email");
+    }
+  };
+
+  // 🟦 Đăng ký + gửi mật khẩu email + chuyển sang thanh toán
+  const registerAndContinue = async () => {
+    if (!fullname || !address) {
+      alert("Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
+
+    try {
+      const res = await axiosInstance.post("/auth/register-quick", {
+        email,
+        fullname,
+        address,
+      });
+
+      alert("Đăng ký thành công! Mật khẩu đã được gửi về email.");
+
+      localStorage.setItem("token", res.data.token);
+
+      const itemsToPay = cartItems.filter((item) =>
+        selectedKeys.has(getKey(item))
+      );
+
+      navigate("/payment", {
+        state: { cartItems: itemsToPay, total: selectedTotal },
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Đăng ký thất bại!");
+    }
+  };
 
   if (loading) {
     return (
@@ -162,9 +183,7 @@ const CartPage: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-6 text-orange-600">
-        Giỏ Hàng Của Bạn
-      </h1>
+      <h1 className="text-3xl font-bold mb-6 text-orange-600">Giỏ Hàng Của Bạn</h1>
 
       {cartItems.length === 0 ? (
         <div className="text-center py-20 bg-gray-50 rounded-xl">
@@ -178,7 +197,6 @@ const CartPage: React.FC = () => {
         </div>
       ) : (
         <>
-
           <div className="flex items-center gap-3 mb-6 p-4 bg-gray-50 rounded-lg">
             <input
               type="checkbox"
@@ -186,13 +204,12 @@ const CartPage: React.FC = () => {
                 selectedKeys.size === cartItems.length && cartItems.length > 0
               }
               onChange={toggleSelectAll}
-              className="w-5 h-5 text-orange-600 rounded focus:ring-orange-500"
+              className="w-5 h-5 text-orange-600"
             />
             <span className="font-medium">
               Chọn tất cả ({selectedKeys.size}/{cartItems.length})
             </span>
           </div>
-
 
           <div className="space-y-4 mb-6">
             {cartItems.map((item) => {
@@ -221,19 +238,68 @@ const CartPage: React.FC = () => {
 
             <button
               onClick={handleCheckout}
-              disabled={selectedKeys.size === 0}
-              className={`w-full py-4 rounded-lg font-bold text-white transition-all text-lg
-                ${selectedKeys.size === 0
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-orange-500 hover:bg-orange-600 shadow-lg"
-                }`}
+              className={`w-full py-4 rounded-lg font-bold text-white bg-orange-500 hover:bg-orange-600 text-lg shadow-lg`}
             >
-              {selectedKeys.size === 0
-                ? "Chọn sản phẩm để thanh toán"
-                : "Tiến hành thanh toán"}
+              Tiến hành thanh toán
             </button>
           </div>
         </>
+      )}
+
+      {/* 🔥 FORM NHẬP EMAIL */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-xl w-96">
+            <h2 className="text-xl font-bold mb-4">Nhập email của bạn</h2>
+
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-2 border rounded mb-4"
+              placeholder="Email"
+            />
+
+            <button
+              onClick={checkEmail}
+              className="w-full bg-orange-500 text-white py-2 rounded"
+            >
+              Tiếp tục
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 🔥 FORM ĐĂNG KÝ NHANH */}
+      {showRegisterForm && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-xl w-96">
+            <h2 className="text-xl font-bold mb-4">Đăng ký tài khoản</h2>
+
+            <input
+              type="text"
+              className="w-full p-2 border rounded mb-3"
+              placeholder="Họ và tên"
+              value={fullname}
+              onChange={(e) => setFullname(e.target.value)}
+            />
+
+            <input
+              type="text"
+              className="w-full p-2 border rounded mb-4"
+              placeholder="Địa chỉ"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+
+            <button
+              onClick={registerAndContinue}
+              className="w-full bg-green-600 text-white py-2 rounded"
+            >
+              Đăng ký & Thanh toán
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

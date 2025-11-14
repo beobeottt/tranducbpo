@@ -130,7 +130,7 @@ const PaymentPage: React.FC = () => {
                   Sản phẩm đã chọn ({cartItems.length})
                 </h2>
                 <div className="space-y-3">
-                  {cartItems.map((item: CartItemType) => ( // SỬA: item có type
+                  {cartItems.map((item: CartItemType) => (
                     <div key={item._id || item.productId} className="flex items-center gap-4 p-3 border rounded-lg">
                       <img
                         src={item.image || '/placeholder.png'}

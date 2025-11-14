@@ -70,5 +70,59 @@ export class AuthService {
 
   return { token };
 }
+async createGuestUser(email: string, shippingAddress: string) {
+    const randomPassword = Math.random().toString(36).slice(-8);
+    const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+    let user = await this.userService.findByEmail(email);
+    let password: string;
+
+    if (!user) {
+      
+      user = await this.userService.create({
+        email,
+        password: hashedPassword,
+        fullname: 'Google User',
+        shippingAddress,
+      });
+
+      await this.mailService.sendPasswordEmail(email, randomPassword, 'Guest User');
+    } else {
+      user.shippingAddress = shippingAddress;
+      await user.save();
+    }
+
+    const payload = { sub: user._id, email: user.email };
+    const token = this.jwtService.sign(payload);
+
+    return { message: 'Guest account created or updated', token };
+  }
+
+  async registerQuick(email: string, fullname: string, address: string) {
+
+  let user = await this.userService.findByEmail(email);
+  if (user) {
+    throw new UnauthorizedException('Email đã tồn tại!');
+  }
+
+  const randomPassword = Math.random().toString(36).slice(-8);
+  const hashedPassword = await bcrypt.hash(randomPassword, 10);
+  user = await this.userService.create({
+    email,
+    fullname,
+    password: hashedPassword,
+    shippingAddress: address,
+    avatar: '',
+    point: 0,
+    gender: 'Male',
+  });
+  await this.mailService.sendPasswordEmail(email, randomPassword, fullname);
+  const token = this.jwtService.sign({
+    sub: user._id,
+    email: user.email,
+  });
+
+  return { token, message: 'Register success' };
+}
 
 }

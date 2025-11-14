@@ -33,6 +33,29 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
+  @Post('guest')
+  async guestCheckout(
+    @Body('email') email: string,
+    @Body('shippingAddress') shippingAddress: string,
+  ){
+    return this.authService.createGuestUser(email, shippingAddress);
+  }
+
+  @Post('check-email')
+  async checkEmail(@Body('email') email: string) {
+    const exists = await this.authService.findByEmail(email);
+    return { exists: !!exists };
+  }
+
+  @Post('register-quick')
+  async registerQuick(
+    @Body('email') email: string,
+    @Body('fullname') fullname: string,
+    @Body('address') address: string,
+  ) {
+    return this.authService.registerQuick(email, fullname, address);
+  }
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req: any) {
