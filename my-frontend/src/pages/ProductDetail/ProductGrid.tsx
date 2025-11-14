@@ -100,7 +100,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
         <button
           onClick={() => setFilter("All")}
           className={`px-4 py-2 rounded-lg font-medium transition ${filter === "All"
-              ? "bg-gradient-to-b from-purple-600 to-sky-200 text-white"
+              ? "bg-gradient-to-b from-purple-400 to-sky-300 text-white"
               : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
         >
