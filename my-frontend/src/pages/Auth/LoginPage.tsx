@@ -40,9 +40,9 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-sky-400 to-red-500 flex items-center justify-center p-4">
       <div className="flex w-full max-w-6xl bg-white rounded-xl shadow-2xl overflow-hidden">
         {/* Banner trái */}
-        <div className="hidden md:flex flex-1 bg-gradient-to-br from-sky-400 to-red-500 items-center justify-center p-8">
+        <div className="hidden md:flex flex-1 bg-gradient-to-b from-purple-600 to-sky-300 items-center justify-center p-8">
           <h2 className="text-5xl font-bold text-white text-center leading-tight">
-            TRẦN GIA LONG
+            ĐỨC BO ĐẸP TRAI
           </h2>
         </div>
 
@@ -56,7 +56,7 @@ const LoginPage: React.FC = () => {
               placeholder="Email / Số điện thoại / Tên đăng nhập"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
               required
             />
 
@@ -65,7 +65,7 @@ const LoginPage: React.FC = () => {
               placeholder="Mật khẩu"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
               required
             />
 
@@ -75,7 +75,7 @@ const LoginPage: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition transform hover:scale-105"
+              className="w-full bg-blue-500 text-white font-bold py-3 rounded-lg hover:bg-blue-600 transition transform hover:scale-105"
             >
               ĐĂNG NHẬP
             </button>
