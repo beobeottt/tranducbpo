@@ -37,12 +37,12 @@ const RegisterPage: React.FC = () => {
 
   return (
     <div>
-      <div className="min-h-screen flex items-center justify-center bg-sky-500">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-600 to-purple-700">
         <div className="flex w-full max-w-6xl bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Banner bên trái */}
-          <div className="hidden md:flex flex-1 bg-gradient-to-br from-sky-400 to-red-500 items-center justify-center">
+          <div className="hidden md:flex flex-1 bg-gradient-to-b from-purple-600 to-sky-300 items-center justify-center">
             <h2 className="text-4xl font-bold text-white text-center">
-              TRẦN ĐỨC BO
+              ĐỨC BO ĐẸP TRAI
             </h2>
           </div>
 
@@ -56,7 +56,7 @@ const RegisterPage: React.FC = () => {
                 placeholder="Email hoặc Số điện thoại"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                 required
               />
 
@@ -65,7 +65,7 @@ const RegisterPage: React.FC = () => {
                 placeholder="Họ và tên"
                 value={fullname}
                 onChange={(e) => setFullname(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                 required
               />
 
@@ -74,7 +74,7 @@ const RegisterPage: React.FC = () => {
                 placeholder="Mật khẩu"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                 required
               />
 
@@ -94,13 +94,13 @@ const RegisterPage: React.FC = () => {
                 placeholder="Địa chỉ giao hàng"
                 value={shippingAddress}
                 onChange={(e) => setShippingAddress(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                 required
               />
 
               <button
                 type="submit"
-                className="w-full bg-orange-500 text-white font-bold py-2 rounded-lg hover:bg-orange-600 transition"
+                className="w-full bg-blue-500 text-white font-bold py-2 rounded-lg hover:bg-blue-600 transition"
               >
                 Đăng ký
               </button>
