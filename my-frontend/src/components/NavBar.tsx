@@ -67,11 +67,11 @@ const NavBar = () => {
   const profileLink = getProfileLink();
 
   return (
-    <nav className="bg-[#ee4d2d] text-white relative">
+    <nav className="bg-gradient-to-b from-blue-600 to-purple-700 text-yellow-300 shadow-lg">
       <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-3">
 
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-2xl font-bold tracking-wide">Tran Duc Bo</span>
+          <span className="text-2xl font-bold tracking-wide">DucBoDepTrai</span>
         </Link>
 
         <div className="hidden md:flex flex-1 mx-6">
