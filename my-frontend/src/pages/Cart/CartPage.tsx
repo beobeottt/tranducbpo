@@ -46,7 +46,7 @@ const CartPage: React.FC = () => {
         const res = await axiosInstance.get("/cart", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setCartItems(res.data);
+        setCartItems(res.data.items || []);
       } else {
         const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
         setCartItems(localCart);

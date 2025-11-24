@@ -6,6 +6,7 @@ import ProductGrid from "../ProductDetail/ProductGrid";
 import axiosInstance from "../../api/axios";
 import { authService } from "../../services/authService";
 import TechBrands from "../../components/TechBrands";
+import ProductsPage from "../Products/ProductsPage";
 
 interface Product {
   _id: string;
@@ -61,30 +62,32 @@ const HomePage = () => {
   }
 
   return (
-    <div>
-      <NavBar/>
+    // <div>
+    //   <NavBar/>
       
-      <div className="bg-gray-50 min-h-screen">
-      <Banner/>
-      <TechBrands/>
-      {/* Search Bar */}
+    //   <div className="bg-gray-50 min-h-screen">
+    //   <Banner/>
+    //   <TechBrands/>
+    //   {/* Search Bar */}
 
-      <div className="max-w-7xl mx-auto px-4 mt-6">
-        <input
-          type="text"
-          placeholder="Tìm kiếm sản phẩm..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-        />
-        <button>
+    //   <div className="max-w-7xl mx-auto px-4 mt-6">
+    //     <input
+    //       type="text"
+    //       placeholder="Tìm kiếm sản phẩm..."
+    //       value={search}
+    //       onChange={(e) => setSearch(e.target.value)}
+    //       className="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+    //     />
+    //     <button>
           
-        </button>
-      </div>
+    //     </button>
+    //   </div>
 
-      <ProductGrid products={products} search={search}/>
-    </div>
-    </div>
+    //   <ProductGrid products={products} search={search}/>
+    // </div>
+    // </div>
+
+    <ProductsPage/>
   );
 };
 

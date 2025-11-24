@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axiosInstance from "../../api/axios";
 import { Product } from "../../types/product";
+import { AxiosError } from "axios";
 
 interface ProductGridProps {
   products: Product[];
@@ -29,42 +30,41 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
 
 
   const handleAddToCart = async (product: Product) => {
-    const token = localStorage.getItem("token");
+    
+  const token = localStorage.getItem("token");
 
-    const cartItem = {
-      productId: product._id,
-      productName: product.productName,
-      price: product.price,
-      quantity: 1,
-      url: product.img,
-    };
-
-    if (token) {
-      try {
-        await axiosInstance.post("http://localhost:3000/cart", cartItem, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setAddedMessage(`✅ ${cartItem.productName} đã được thêm vào giỏ hàng (server)!`);
-      } catch (err: any) {
-        console.error("❌ Lỗi khi thêm vào giỏ server:", err);
-        setAddedMessage("❌ Không thể thêm sản phẩm vào giỏ hàng (server)!");
-      }
-    } else {
-      const localCart: any[] = JSON.parse(localStorage.getItem("cart") || "[]");
-      const existing = localCart.find((item) => item.productId === cartItem.productId);
-
-      if (existing) {
-        existing.quantity += 1;
-      } else {
-        localCart.push(cartItem);
-      }
-
-      localStorage.setItem("cart", JSON.stringify(localCart));
-      setAddedMessage(`🛒 ${cartItem.productName} đã được thêm vào giỏ hàng (local)!`);
-    }
-
-    setTimeout(() => setAddedMessage(null), 2000);
+  const cartItem = {
+    productId: product._id,
+    productName: product.productName,
+    price: product.price,
+    quantity: 1,
   };
+
+  if (token) {  
+    try {
+      
+      await axiosInstance.post("/cart", cartItem);
+      console.log(cartItem);
+      setAddedMessage(`🛒 Đã thêm ${product.productName} vào giỏ (server)!`);
+    } catch (err) {
+      const error = err as AxiosError;
+      console.error("❌ Lỗi khi thêm vào giỏ server:", error.response?.data || error.message);
+      setAddedMessage("❌ Không thể thêm sản phẩm vào giỏ hàng (server)!");
+    }
+  } else {
+    const localCart: any[] = JSON.parse(localStorage.getItem("cart") || "[]");
+
+    const existing = localCart.find((item) => item.productId === cartItem.productId);
+    if (existing) existing.quantity += 1;
+    else localCart.push({ ...cartItem, productName: product.productName, price: product.price });
+
+    localStorage.setItem("cart", JSON.stringify(localCart));
+    setAddedMessage(`🛒 ${product.productName} đã được thêm vào giỏ hàng (local)!`);
+  }
+
+  setTimeout(() => setAddedMessage(null), 2000);
+};
+
 
   const handleToggleFavourite = async (productId: string) => {
     const token = localStorage.getItem("token");

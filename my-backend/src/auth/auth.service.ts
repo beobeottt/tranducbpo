@@ -1,10 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { MailerService } from '@nestjs-modules/mailer';
-import { RegisterDto, LoginDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, ChangePasswordDto } from './dto/auth.dto';
 import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
@@ -18,7 +18,12 @@ export class AuthService {
   async register(dto: RegisterDto) {
     const hashed = await bcrypt.hash(dto.password, 10);
     const user = await this.userService.create({ ...dto, password: hashed });
-    const token = this.jwtService.sign({ sub: user._id, email: user.email });
+    const userId = (user as any)._id?.toString() || user.id?.toString();
+    const token = this.jwtService.sign({ 
+      sub: userId, 
+      id: userId,
+      email: user.email 
+    });
     return { token };
   }
 
@@ -31,13 +36,59 @@ export class AuthService {
     const match = await bcrypt.compare(dto.password, user.password);
     if (!match) throw new UnauthorizedException('Invalid credentials');
 
-    const token = this.jwtService.sign({ sub: user._id, email: user.email });
+    const userId = (user as any)._id?.toString() || user.id?.toString();
+    const token = this.jwtService.sign({ 
+      sub: userId, 
+      id: userId,
+      email: user.email 
+    });
     return { token, user };
   }
 
   async findByEmail(email: string) {
     return this.userService.findByEmail(email);
   }
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.userService.findOne(userId);
+
+    if (!user) throw new BadRequestException('User không tồn tại');
+
+    const isMatch = await bcrypt.compare(dto.currentPassword, user.password!);
+    if (!isMatch)
+      throw new BadRequestException('Mật khẩu hiện tại không đúng');
+
+    if (dto.currentPassword === dto.newPassword)
+      throw new BadRequestException(
+        'Mật khẩu mới không được giống mật khẩu cũ',
+      );
+
+    const hashed = await bcrypt.hash(dto.newPassword, 10);
+    user.password = hashed;
+    await user.save();
+
+    return { message: 'Đổi mật khẩu thành công!' };
+  }
+
+
+
+  async forgotPassword(email: string) {
+  const user = await this.userService.findByEmail(email);
+
+  if (!user) {
+    throw new UnauthorizedException('Email not found');
+  }
+  const newPassword = Math.random().toString(36).slice(-8);
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  user.password = hashedPassword;
+  await user.save();
+  await this.mailService.sendPasswordEmail(
+    email,
+    newPassword,
+    user.fullname || 'User'
+  );
+
+  return { message: 'A new password has been sent to your email' };
+}
 
   async createGoogleUser(googleUser: any): Promise<{ token: string }> {
   const randomPassword = Math.random().toString(36).slice(-8);
@@ -63,8 +114,10 @@ export class AuthService {
     );
   }
 
+  const userId = (user as any)._id?.toString() || user.id?.toString();
   const token = this.jwtService.sign({
-    sub: user._id,
+    sub: userId,
+    id: userId,
     email: user.email,
   });
 
@@ -92,7 +145,12 @@ async createGuestUser(email: string, shippingAddress: string) {
       await user.save();
     }
 
-    const payload = { sub: user._id, email: user.email };
+    const userId = (user as any)._id?.toString() || user.id?.toString();
+    const payload = { 
+      sub: userId, 
+      id: userId,
+      email: user.email 
+    };
     const token = this.jwtService.sign(payload);
 
     return { message: 'Guest account created or updated', token };
@@ -117,8 +175,10 @@ async createGuestUser(email: string, shippingAddress: string) {
     gender: 'Male',
   });
   await this.mailService.sendPasswordEmail(email, randomPassword, fullname);
+  const userId = (user as any)._id?.toString() || user.id?.toString();
   const token = this.jwtService.sign({
-    sub: user._id,
+    sub: userId,
+    id: userId,
     email: user.email,
   });
 

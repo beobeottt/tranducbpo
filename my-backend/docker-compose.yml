@@ -1,0 +1,14 @@
+# my-backend/docker-compose.yml
+version: '3.8'
+
+services:
+  nest-backend:
+    build: .
+    container_name: nest-backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - MONGO_URI=${MONGO_URI}
+    restart: unless-stopped

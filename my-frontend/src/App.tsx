@@ -12,8 +12,11 @@ import DashboardLayout from "./pages/Admin/DashboardLayout";
 import ProfilePage from "./pages/Profile/ProfilePage";
 import CartPage from "./pages/Cart/CartPage";
 import PaymentPage from "./sections/PaymentPage";
+import ProductsPage from "./pages/Products/ProductsPage";
 import { AuthProvider } from "./auth/useAuth";
 import AuthSuccess from "./pages/Auth/AuthSuccess";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
+import AiChat from "./components/aichatbox";
 
 
 
@@ -23,6 +26,7 @@ function App() {
       <AuthProvider>
         <Routes>
         <Route path="/home" element={<HomePage/>}/>
+        <Route path="/products" element={<ProductsPage/>}/>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="*" element={<Navigate to="/home" replace />} />
@@ -37,6 +41,8 @@ function App() {
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/payment" element={<PaymentPage/>}/>
+        <Route path="/forgot-password" element={<ForgotPassword/>}/>
+        <Route path="/chatbot" element={<AiChat/>}/>
       </Routes>
         </AuthProvider>
   );

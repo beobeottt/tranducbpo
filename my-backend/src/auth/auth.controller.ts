@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { ChangePasswordDto, ForgotPasswordDto, LoginDto, RegisterDto } from './dto/auth.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
@@ -19,7 +19,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   @Post('/register')
   async register(@Body() registerDto: RegisterDto): Promise<{ token: string }> {
@@ -37,7 +37,7 @@ export class AuthController {
   async guestCheckout(
     @Body('email') email: string,
     @Body('shippingAddress') shippingAddress: string,
-  ){
+  ) {
     return this.authService.createGuestUser(email, shippingAddress);
   }
 
@@ -47,6 +47,22 @@ export class AuthController {
     return { exists: !!exists };
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(
+    @Req() req,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    const id = req.user.id || req.user.sub; 
+    return await this.authService.changePassword(id, dto);
+  }
+
+
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
   @Post('register-quick')
   async registerQuick(
     @Body('email') email: string,
@@ -69,21 +85,21 @@ export class AuthController {
   }
 
   @Get('google/callback')
-@UseGuards(AuthGuard('google'))
-async googleCallback(@Req() req: any, @Res() res: Response) {
-  try {
-    const user = req.user;
-    if (!user?.email) {
-      return res.status(400).send('Missing user data from Google');
+  @UseGuards(AuthGuard('google'))
+  async googleCallback(@Req() req: any, @Res() res: Response) {
+    try {
+      const user = req.user;
+      if (!user?.email) {
+        return res.status(400).send('Missing user data from Google');
+      }
+      console.log('Google user data:', user);
+      const { token } = await this.authService.createGoogleUser(user);
+      console.log('Generated token:', token);
+      return res.redirect(`http://localhost:3001/auth/success?token=${token}`);
+    } catch (error) {
+      console.error('Google callback error:', error);
+      return res.status(500).send('Authentication failed');
     }
-    console.log('Google user data:', user);
-    const { token } = await this.authService.createGoogleUser(user);
-    console.log('Generated token:', token);
-    return res.redirect(`http://localhost:3001/auth/success?token=${token}`);
-  } catch (error) {
-    console.error('Google callback error:', error);
-    return res.status(500).send('Authentication failed');
   }
-}
 
 }

@@ -39,14 +39,13 @@ const RegisterPage: React.FC = () => {
     <div>
       <div className="min-h-screen flex items-center justify-center bg-sky-500">
         <div className="flex w-full max-w-6xl bg-white rounded-lg shadow-lg overflow-hidden">
-          {/* Banner bên trái */}
+
           <div className="hidden md:flex flex-1 bg-gradient-to-br from-sky-400 to-red-500 items-center justify-center">
             <h2 className="text-4xl font-bold text-white text-center">
               TRẦN ĐỨC BO
             </h2>
           </div>
 
-          {/* Form đăng ký bên phải */}
           <div className="w-full md:w-1/2 p-8">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">Đăng ký</h2>
 
