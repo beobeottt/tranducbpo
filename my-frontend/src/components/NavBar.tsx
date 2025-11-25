@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import axiosInstance from "../api/axios";
+import io from "socket.io-client";
 
 const NavBar = () => {
   const [search, setSearch] = useState("");
@@ -10,17 +11,33 @@ const NavBar = () => {
   const { user, logout } = useAuth();
   const [cartCount, setCartCount] = useState(0);
 
-  const loadCartCount = async () => {
-    const token = localStorage.getItem("token");
+  // --- Socket Realtime ---
+  useEffect(() => {
+    if (!user?._id) return;
 
+    const socket = io("http://localhost:3000");
+    socket.emit("joinCart", user._id);
+
+    socket.on("cartUpdated", (items) => {
+      setCartCount(items.length);
+    });
+
+    return () => {
+      socket.disconnect();
+    }
+  }, [user]);
+
+  // --- Hàm load cart cho user login / guest ---
+  const loadCartCount = async () => {
     try {
-      if (token) {
+      const token = localStorage.getItem("token");
+
+      if (token && user?._id) {
         const res = await axiosInstance.get("/cart", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setCartCount(res.data.length || 0);
+        setCartCount(res.data?.length || 0);
       } else {
-
         const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
         setCartCount(localCart.length);
       }
@@ -30,12 +47,24 @@ const NavBar = () => {
     }
   };
 
+  // --- Load khi NavBar mount + khi user đổi trạng thái ---
   useEffect(() => {
     loadCartCount();
+  }, [user]);
 
+  // --- Lắng nghe sự kiện localStorage thay đổi (guest mode) ---
+  useEffect(() => {
     window.addEventListener("storage", loadCartCount);
     return () => window.removeEventListener("storage", loadCartCount);
   }, []);
+
+  const getProfileLink = () => {
+    if (!user) return null;
+    if (user._id) return `/user/profile/${user._id}`;
+    return null;
+  };
+
+  const profileLink = getProfileLink();
 
   return (
     <nav className="bg-gradient-to-b from-blue-600 to-purple-700 text-yellow-300 shadow-lg">
@@ -44,7 +73,6 @@ const NavBar = () => {
         <Link to="/" className="flex items-center gap-2">
           <span className="text-2xl font-bold tracking-wide">DucBoDepTrai</span>
         </Link>
-
 
         <div className="hidden md:flex flex-1 mx-6">
           <input
@@ -56,9 +84,9 @@ const NavBar = () => {
           />
         </div>
 
-
         <div className="flex items-center gap-5 relative">
 
+          {/* Giỏ hàng */}
           <div className="relative">
             <Link to="/cart">
               <ShoppingCart className="w-6 h-6 cursor-pointer hover:text-gray-200" />
@@ -70,17 +98,16 @@ const NavBar = () => {
             </Link>
           </div>
 
-
-          {user ? (
+          {/* User */}
+          {profileLink ? (
             <Link
-              to={`/user/profile/${user._id || user.id}`}
+              to={profileLink}
               className="hidden md:flex items-center justify-center w-10 h-10 rounded-full bg-white text-[#ee4d2d] font-bold hover:opacity-80 transition"
-              title={user.fullname || user.email}
+              title={user?.fullname || user?.email || "User"}
             >
-              {(user.fullname || user.email || "U").charAt(0).toUpperCase()}
+              {(user?.fullname || user?.email || "U").charAt(0).toUpperCase()}
             </Link>
           ) : (
-
             <div className="hidden md:flex items-center gap-3 text-sm font-medium">
               <Link to="/login" className="hover:underline hover:text-gray-200 transition">
                 Đăng nhập
@@ -92,14 +119,14 @@ const NavBar = () => {
             </div>
           )}
 
-
+          {/* Mobile toggle */}
           <button onClick={() => setOpen(!open)} className="md:hidden">
             {open ? <X className="w-6 h-6 cursor-pointer" /> : <Menu className="w-6 h-6 cursor-pointer" />}
           </button>
         </div>
       </div>
 
-
+      {/* Mobile menu */}
       {open && (
         <div className="md:hidden bg-[#f05d40] px-4 pb-4 space-y-3">
           <input
@@ -111,17 +138,17 @@ const NavBar = () => {
           />
 
           <div className="flex flex-col gap-2 mt-2 text-sm font-medium">
-            {user ? (
+            {profileLink ? (
               <>
                 <Link
-                  to={`/user/profile/${user._id || user.id}`}
+                  to={profileLink}
                   className="hover:underline hover:text-gray-200 transition flex items-center gap-2"
                   onClick={() => setOpen(false)}
                 >
                   <div className="w-8 h-8 rounded-full bg-white text-[#ee4d2d] font-bold flex items-center justify-center">
-                    {(user.fullname || user.email || "U").charAt(0).toUpperCase()}
+                    {(user?.fullname || user?.email || "U").charAt(0).toUpperCase()}
                   </div>
-                  <span>{user.fullname || user.email}</span>
+                  <span>{user?.fullname || user?.email}</span>
                 </Link>
                 <button
                   onClick={() => {

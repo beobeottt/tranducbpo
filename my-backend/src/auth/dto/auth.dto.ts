@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 import { Gender } from "src/common/enums/gender.enum";
 import { Role } from "src/common/enums/role.enum";
 
@@ -39,4 +39,19 @@ export class AutoRegisterDto {
     @IsEmail({}, {message: 'Email not ok'})
     @IsNotEmpty()
     email: string;
+}
+
+export class ForgotPasswordDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+}
+export class ChangePasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  currentPassword: string;
+
+  @IsString()
+  @MinLength(6)
+  newPassword: string;
 }

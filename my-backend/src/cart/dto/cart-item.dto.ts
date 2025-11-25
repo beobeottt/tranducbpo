@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString } from "class-validator";
 
 export class CreateCartItemDto {
     
@@ -28,7 +28,7 @@ export class CreateCartItemDto {
 
     @IsString()
     @IsOptional()
-    url: string; // this is link to image of product
+    url: string; 
 }
 
 export class UpdateCartItemDto {
@@ -56,4 +56,13 @@ export class UpdateCartItemDto {
     @IsString()
     @IsOptional()
     url: string; // this is link to image of product
+}
+
+export class AddToCartDto {
+  @IsMongoId({ message: 'ID sản phẩm không hợp lệ' })
+  productId: string;
+
+  @IsOptional()
+  @IsPositive()
+  quantity?: number = 1;
 }

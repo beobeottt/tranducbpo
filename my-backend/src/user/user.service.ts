@@ -1,4 +1,4 @@
-// src/user/user.service.ts
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schema/user.schema'; 
@@ -39,8 +39,6 @@ export class UserService {
     }
     return user;
   }
-
-
   async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email }).exec();
   }

@@ -15,6 +15,9 @@ import { DiscountModule } from './discount/discount.module';
 import databaseConfig from './config/database.config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { WebsocketModule } from './websocket/websocket.module';
+import { ElasticsearchModule } from './elasticsearch/elasticsearch.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -53,6 +56,9 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
     AuthModule,
     MailModule,
     DiscountModule,
+    WebsocketModule,
+    ElasticsearchModule,
+    AiModule,
   ],
   controllers: [AppController, MailController],
   providers: [AppService],

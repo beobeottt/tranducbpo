@@ -137,3 +137,10 @@ Work Today
 *** change password and forgot password
 *** cập nhập cart theo realtime
 *** add discount code when we want to pay for all bill
+
+
+
+
+
+docker-compose down
+docker-compose up --build

@@ -20,16 +20,16 @@ const LoginPage: React.FC = () => {
       const { token, user } = res.data;
 
       localStorage.setItem("token", token);
+      console.log(token)
       if (user) localStorage.setItem("user", JSON.stringify(user));
 
-      await login(email, password); // Cập nhật context
+      await login(email, password);
       navigate("/home");
     } catch (err: any) {
       setError(err.response?.data?.message || "Email hoặc mật khẩu không đúng.");
     }
   };
 
-  // XỬ LÝ GOOGLE LOGIN
   const handleGoogleLogin = () => {
     window.location.href = "http://localhost:3000/auth/google";
     window.location.href = `${process.env.VITE_API_URL || "http://localhost:3000"}/auth/google`;
@@ -40,7 +40,7 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-sky-400 to-red-500 flex items-center justify-center p-4">
       <div className="flex w-full max-w-6xl bg-white rounded-xl shadow-2xl overflow-hidden">
         {/* Banner trái */}
-        <div className="hidden md:flex flex-1 bg-gradient-to-b from-purple-600 to-sky-300 items-center justify-center p-8">
+        <div className="hidden md:flex flex-1 bg-gradient-to-br from-sky-400 to-red-500 items-center justify-center p-8">
           <h2 className="text-5xl font-bold text-white text-center leading-tight">
             ĐỨC BO ĐẸP TRAI
           </h2>
@@ -121,8 +121,6 @@ const LoginPage: React.FC = () => {
           </p>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 };
