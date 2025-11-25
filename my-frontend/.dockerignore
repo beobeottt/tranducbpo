@@ -1,0 +1,12 @@
+node_modules
+build
+dist
+.eslintcache
+npm-debug.log
+pnpm-debug.log
+.env
+.env.local
+Dockerfile
+docker-compose.yml
+.git
+.gitignore

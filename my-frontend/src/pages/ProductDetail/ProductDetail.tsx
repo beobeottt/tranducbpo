@@ -166,7 +166,7 @@ const ProductDetail: React.FC = () => {
                     type="number"
                     value={qty}
                     onChange={(e) => handleQtyChange(Number(e.target.value))}
-                    className="w-20 text-center border-2 border-gray-300 rounded-lg py-2 text-lg font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                    className="w-20 text-center border-2 border-gray-300 rounded-lg py-2 text-lg font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     min="1"
                     max={product.quantity}
                   />
@@ -185,7 +185,7 @@ const ProductDetail: React.FC = () => {
               <div className="mt-8 flex gap-4">
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 bg-orange-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-orange-600 transition shadow-lg flex items-center justify-center gap-2"
+                  className="flex-1 bg-blue-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-600 transition shadow-lg flex items-center justify-center gap-2"
                 >
                   <span>🛒</span> Thêm vào giỏ ({qty})
                 </button>
