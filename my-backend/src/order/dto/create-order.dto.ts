@@ -1,5 +1,5 @@
 // src/order/dto/create-order.dto.ts
-import { IsArray, IsNumber, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class OrderItemDto {
@@ -27,4 +27,8 @@ export class CreateOrderDto {
 
   @IsNumber()
   totalPrice: number;
+
+  @IsNumber()
+  @IsOptional()
+  pointsToRedeem?: number;
 }

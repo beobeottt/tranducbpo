@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { Facebook, Chrome } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
-import Footer from "../../components/Footter";
-import axiosInstance from "../../api/axios";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -16,24 +14,16 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setError("");
     try {
-      const res = await axiosInstance.post("/auth/login", { email, password });
-      const { token, user } = res.data;
-
-      localStorage.setItem("token", token);
-      console.log(token)
-      if (user) localStorage.setItem("user", JSON.stringify(user));
-
       await login(email, password);
       navigate("/home");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Email hoặc mật khẩu không đúng.");
+      setError(err.message || "Email hoặc mật khẩu không đúng.");
     }
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:3000/auth/google";
-    window.location.href = `${process.env.VITE_API_URL || "http://localhost:3000"}/auth/google`;
-
+    const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3000";
+    window.location.href = `${baseUrl}/auth/google`;
   };
 
   return (

@@ -4,7 +4,8 @@ import axiosInstance from "../../api/axios";
 
 interface Order {
   _id: string;
-  user: string;
+  user?: string;
+  userId?: string;
   totalPrice: number;
   status: string;
 }
@@ -20,7 +21,7 @@ const AdminOrders = () => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const res = await axiosInstance.get("http://localhost:3000/order");
+      const res = await axiosInstance.get("/order");
       setOrders(res.data);
     } catch (err) {
       console.error("❌ Error fetching orders:", err);
@@ -38,7 +39,7 @@ const AdminOrders = () => {
   const handleDelete = async (id: string) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa đơn hàng này không?")) return;
     try {
-      await axiosInstance.delete(`http://localhost:3000/order/${id}`);
+      await axiosInstance.delete(`/order/${id}`);
       setOrders(orders.filter((o) => o._id !== id));
       alert("✅ Đã xóa đơn hàng!");
     } catch (err) {
@@ -51,7 +52,7 @@ const AdminOrders = () => {
   const handleUpdateStatus = async () => {
     if (!editingOrder) return;
     try {
-      await axiosInstance.patch(`http://localhost:3000/order/${editingOrder._id}`, {
+      await axiosInstance.patch(`/order/${editingOrder._id}`, {
         status: newStatus,
       });
       alert("✅ Cập nhật trạng thái thành công!");
@@ -85,8 +86,8 @@ const AdminOrders = () => {
         <tbody>
           {orders.map((o) => (
             <tr key={o._id} className="border-b hover:bg-gray-50">
-              <td className="p-3">{o.user}</td>
-              <td className="p-3">${o.totalPrice.toLocaleString()}</td>
+              <td className="p-3">{o.user || o.userId || "—"}</td>
+              <td className="p-3">{o.totalPrice.toLocaleString("vi-VN")}₫</td>
               <td className="p-3 font-medium">
                 <span
                   className={`px-2 py-1 rounded ${
@@ -94,7 +95,7 @@ const AdminOrders = () => {
                       ? "bg-green-100 text-green-700"
                       : o.status === "Pending"
                       ? "bg-yellow-100 text-yellow-700"
-                      : o.status === "Canceled"
+                      : o.status === "Cancelled"
                       ? "bg-red-100 text-red-700"
                       : "bg-blue-100 text-blue-700"
                   }`}
@@ -135,7 +136,7 @@ const AdminOrders = () => {
               <strong>Người dùng:</strong> {editingOrder.user}
             </p>
             <p className="text-sm mb-4">
-              <strong>Tổng tiền:</strong> ${editingOrder.totalPrice}
+              <strong>Tổng tiền:</strong> {editingOrder.totalPrice.toLocaleString("vi-VN")}₫
             </p>
 
             <select
@@ -144,9 +145,10 @@ const AdminOrders = () => {
               className="w-full border p-2 rounded mb-4"
             >
               <option value="Pending">Pending</option>
-              <option value="Shipping">Shipping</option>
+              <option value="Paid">Paid</option>
+              <option value="Shipped">Shipped</option>
               <option value="Completed">Completed</option>
-              <option value="Canceled">Canceled</option>
+              <option value="Cancelled">Cancelled</option>
             </select>
 
             <div className="flex justify-end gap-3">

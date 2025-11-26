@@ -67,7 +67,7 @@ export class AuthService {
     await user.save();
 
     return { message: 'Đổi mật khẩu thành công!' };
-  }
+    }
 
 
 
@@ -82,7 +82,7 @@ export class AuthService {
   user.password = hashedPassword;
   await user.save();
   await this.mailService.sendPasswordEmail(
-    email,
+      email,
     newPassword,
     user.fullname || 'User'
   );
@@ -121,8 +121,8 @@ export class AuthService {
     email: user.email,
   });
 
-  return { token };
-}
+    return { token };
+  }
 async createGuestUser(email: string, shippingAddress: string) {
     const randomPassword = Math.random().toString(36).slice(-8);
     const hashedPassword = await bcrypt.hash(randomPassword, 10);
@@ -183,6 +183,6 @@ async createGuestUser(email: string, shippingAddress: string) {
   });
 
   return { token, message: 'Register success' };
-}
+  }
 
 }

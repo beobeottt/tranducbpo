@@ -60,11 +60,14 @@ const NavBar = () => {
 
   const getProfileLink = () => {
     if (!user) return null;
-    if (user._id) return `/user/profile/${user._id}`;
-    return null;
+    const id = user._id || user.id;
+    if (!id) return null;
+    return `/user/profile/${id}`;
   };
 
   const profileLink = getProfileLink();
+  const displayName = user?.fullname || user?.name || user?.email || "User";
+  const displayInitial = displayName.charAt(0).toUpperCase();
 
   return (
     <nav className="bg-gradient-to-b from-blue-600 to-purple-700 text-yellow-300 shadow-lg">
@@ -103,9 +106,9 @@ const NavBar = () => {
             <Link
               to={profileLink}
               className="hidden md:flex items-center justify-center w-10 h-10 rounded-full bg-white text-[#ee4d2d] font-bold hover:opacity-80 transition"
-              title={user?.fullname || user?.email || "User"}
+              title={displayName}
             >
-              {(user?.fullname || user?.email || "U").charAt(0).toUpperCase()}
+              {displayInitial}
             </Link>
           ) : (
             <div className="hidden md:flex items-center gap-3 text-sm font-medium">
@@ -146,9 +149,9 @@ const NavBar = () => {
                   onClick={() => setOpen(false)}
                 >
                   <div className="w-8 h-8 rounded-full bg-white text-[#ee4d2d] font-bold flex items-center justify-center">
-                    {(user?.fullname || user?.email || "U").charAt(0).toUpperCase()}
+                    {displayInitial}
                   </div>
-                  <span>{user?.fullname || user?.email}</span>
+                  <span>{displayName}</span>
                 </Link>
                 <button
                   onClick={() => {

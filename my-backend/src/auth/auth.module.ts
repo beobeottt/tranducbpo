@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from './schema/auth.schema';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtStrategy } from './jwt.strategy'; // ✅ Thêm dòng này
+import { JwtStrategy } from './jwt.strategy';
 import { GoogleStrategy } from './google.strategy';
 import { UserModule } from 'src/user/user.module';
 import { MailModule } from 'src/mail/mail.module';

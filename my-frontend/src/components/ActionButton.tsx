@@ -1,4 +1,3 @@
-// src/components/FloatingActionButtons.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { FaPhone, FaFacebookMessenger, FaArrowUp, FaRobot } from "react-icons/fa";
 import { SiZalo } from "react-icons/si";

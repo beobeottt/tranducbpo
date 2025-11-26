@@ -31,6 +31,19 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchFullUser = async (base: User | null): Promise<User | null> => {
+    if (!base) return null;
+    const userId = base._id || base.id;
+    if (!userId) return base;
+    try {
+      const res = await axiosInstance.get(`/user/${userId}`);
+      return res.data;
+    } catch (err) {
+      console.warn("Không thể tải chi tiết người dùng:", err);
+      return base;
+    }
+  };
+
   // KIỂM TRA TOKEN KHI MỞ ỨNG DỤNG
   useEffect(() => {
     const checkAuth = async () => {
@@ -43,9 +56,11 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
           const res = await axiosInstance.get("/auth/me", {
             headers: { Authorization: `Bearer ${token}` },
           });
-          const freshUser = res.data;
-          setUser(freshUser);
-          localStorage.setItem("user", JSON.stringify(freshUser));
+          const freshUser = await fetchFullUser(res.data);
+          if (freshUser) {
+            setUser(freshUser);
+            localStorage.setItem("user", JSON.stringify(freshUser));
+          }
         } catch (err) {
           console.warn("Token không hợp lệ → xóa");
           localStorage.removeItem("token");
@@ -66,8 +81,10 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
       const { token, user } = res.data;
 
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      setUser(user);
+
+      const detailedUser = await fetchFullUser(user as User);
+      localStorage.setItem("user", JSON.stringify(detailedUser || user));
+      setUser(detailedUser || user);
     } catch (err: any) {
       throw new Error(err.response?.data?.message || "Đăng nhập thất bại");
     }
@@ -82,9 +99,10 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const user = res.data;
-      localStorage.setItem("user", JSON.stringify(user));
-      setUser(user);
+      const fullUser = await fetchFullUser(res.data);
+      if (!fullUser) throw new Error("Không đọc được dữ liệu người dùng");
+      localStorage.setItem("user", JSON.stringify(fullUser));
+      setUser(fullUser);
     } catch (err: any) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");

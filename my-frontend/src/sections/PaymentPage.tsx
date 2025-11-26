@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom'; 
 import { CreditCard, Lock, Shield, CheckCircle, X, Truck, DollarSign, ShoppingCart } from 'lucide-react';
 import axiosInstance from '../api/axios';
+import { useAuth } from '../auth/useAuth';
 
 interface CartItemType {
   _id?: string;
@@ -20,7 +21,9 @@ interface CartItemType {
 const PaymentPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { cartItems = [], total = 0 } = location.state || { cartItems: [], total: 0 };
+  const locationState = (location.state as { cartItems?: CartItemType[]; total?: number }) || {};
+  const { cartItems = [], total = 0 } = locationState;
+  const { user, loginWithToken } = useAuth();
 
   const [discountCode, setDiscountCode] = useState('');
   const [discountError, setDiscountError] = useState('');
@@ -35,6 +38,9 @@ const PaymentPage: React.FC = () => {
   const [billingAddress, setBillingAddress] = useState('');
   const [city, setCity] = useState('');
   const [zipCode, setZipCode] = useState('');
+  const [pointsToRedeem, setPointsToRedeem] = useState(0);
+  const [submittingOrder, setSubmittingOrder] = useState(false);
+  const [orderError, setOrderError] = useState('');
 
   const formatCardNumber = (value: string) => {
     const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
@@ -82,11 +88,79 @@ const PaymentPage: React.FC = () => {
     }
   };
 
-  const finalTotal = total - discountApplied;
+  const totalAfterDiscount = useMemo(() => Math.max(total - discountApplied, 0), [total, discountApplied]);
+  const availablePoints = user?.point ?? 0;
+  const redeemableLimit = useMemo(
+    () => Math.max(0, Math.min(availablePoints, Math.floor(totalAfterDiscount))),
+    [availablePoints, totalAfterDiscount]
+  );
+  const payableTotal = useMemo(
+    () => Math.max(totalAfterDiscount - pointsToRedeem, 0),
+    [totalAfterDiscount, pointsToRedeem]
+  );
+  const projectedPointsEarned = useMemo(
+    () => Math.floor(payableTotal * 0.1),
+    [payableTotal]
+  );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    setPointsToRedeem((prev) => Math.min(prev, redeemableLimit));
+  }, [redeemableLimit]);
+
+  useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Thanh toán thành công ${finalTotal.toLocaleString()} ₫`);
+    if (!cartItems.length) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Vui lòng đăng nhập để đặt hàng.');
+      navigate('/login');
+      return;
+    }
+
+    const orderItems = cartItems.map((item: CartItemType) => ({
+      productId: item.productId || item._id || '',
+      productName: item.productName,
+      price: item.price,
+      quantity: item.quantity,
+    }));
+
+    if (orderItems.some((item) => !item.productId)) {
+      setOrderError('Một số sản phẩm thiếu mã định danh. Vui lòng thử lại.');
+      return;
+    }
+
+    try {
+      setSubmittingOrder(true);
+      setOrderError('');
+
+      await axiosInstance.post('/order', {
+        items: orderItems,
+        totalPrice: totalAfterDiscount,
+        pointsToRedeem,
+      });
+
+      alert(`Thanh toán thành công ${payableTotal.toLocaleString()} ₫`);
+      localStorage.removeItem('cart');
+
+      if (token) {
+        await loginWithToken(token);
+      }
+
+      const profileId = user?._id || user?.id;
+      navigate(profileId ? `/user/profile/${profileId}` : '/home');
+    } catch (err: any) {
+      console.error(err);
+      setOrderError(err.response?.data?.message || 'Đặt hàng thất bại. Vui lòng thử lại.');
+    } finally {
+      setSubmittingOrder(false);
+    }
   };
 
   if (cartItems.length === 0) {
@@ -178,6 +252,47 @@ const PaymentPage: React.FC = () => {
                     Giảm {discountApplied.toLocaleString()} ₫
                   </p>
                 )}
+              </div>
+
+              {/* Loyalty Points */}
+              <div className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="text-lg font-semibold">Điểm thưởng</h3>
+                    <p className="text-sm text-gray-500">Bạn có thể dùng tối đa {redeemableLimit.toLocaleString()} điểm cho đơn này.</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-500">Điểm khả dụng</p>
+                    <p className="text-2xl font-bold text-purple-600">{availablePoints.toLocaleString()}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min={0}
+                    max={redeemableLimit}
+                    value={pointsToRedeem}
+                    onChange={(e) =>
+                      setPointsToRedeem(
+                        Math.min(
+                          Math.max(0, Number(e.target.value) || 0),
+                          redeemableLimit
+                        )
+                      )
+                    }
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setPointsToRedeem(redeemableLimit)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  >
+                    Dùng tối đa
+                  </button>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  Số tiền phải trả sau khi dùng điểm: <span className="font-semibold text-green-600">{payableTotal.toLocaleString()} ₫</span>
+                </p>
               </div>
 
               {/* Payment Form */}
@@ -289,12 +404,16 @@ const PaymentPage: React.FC = () => {
                   </div>
                 )}
 
+                {orderError && (
+                  <p className="text-red-600 text-sm text-center">{orderError}</p>
+                )}
                 <button
                   type="submit"
-                  className="w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-700 flex items-center justify-center gap-2"
+                  disabled={submittingOrder}
+                  className="w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-700 disabled:opacity-70 flex items-center justify-center gap-2"
                 >
                   <CheckCircle className="w-5 h-5" />
-                  Thanh toán {finalTotal.toLocaleString()} ₫
+                  {submittingOrder ? 'Đang xử lý...' : `Thanh toán ${payableTotal.toLocaleString()} ₫`}
                 </button>
               </form>
             </div>
@@ -314,10 +433,24 @@ const PaymentPage: React.FC = () => {
                       <span>-{discountApplied.toLocaleString()} ₫</span>
                     </div>
                   )}
+                  <div className="flex justify-between text-sm">
+                    <span>Sau giảm giá:</span>
+                    <span>{totalAfterDiscount.toLocaleString()} ₫</span>
+                  </div>
+                  {pointsToRedeem > 0 && (
+                    <div className="flex justify-between text-sm text-purple-600">
+                      <span>Điểm sử dụng:</span>
+                      <span>-{pointsToRedeem.toLocaleString()} ₫</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm text-blue-600">
+                    <span>Điểm tích lũy:</span>
+                    <span>{projectedPointsEarned.toLocaleString()} điểm</span>
+                  </div>
                   <div className="border-t pt-2">
                     <div className="flex justify-between text-lg font-bold">
-                      <span>Tổng cộng:</span>
-                      <span className="text-green-600">{finalTotal.toLocaleString()} ₫</span>
+                      <span>Tổng cộng phải trả:</span>
+                      <span className="text-green-600">{payableTotal.toLocaleString()} ₫</span>
                     </div>
                   </div>
                 </div>

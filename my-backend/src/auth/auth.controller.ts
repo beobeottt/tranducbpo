@@ -21,17 +21,17 @@ export class AuthController {
     private readonly jwtService: JwtService,
   ) { }
 
-  @Post('/register')
+    @Post('/register')
   async register(@Body() registerDto: RegisterDto): Promise<{ token: string }> {
-    return this.authService.register(registerDto);
-  }
+        return this.authService.register(registerDto);
+    }
 
-  @Post('/login')
+    @Post('/login')
   async login(
     @Body() loginDto: LoginDto,
   ): Promise<{ token: string; user: any }> {
-    return this.authService.login(loginDto);
-  }
+        return this.authService.login(loginDto);
+    }
 
   @Post('guest')
   async guestCheckout(

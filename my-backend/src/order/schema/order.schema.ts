@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document } from "mongoose";
 
 export type OrderDocument = Order & Document;
 
@@ -26,6 +27,26 @@ export class Order{
 
   @Prop({ required: true })
   totalPrice: number;
+
+  @Prop({ default: 0 })
+  payableAmount: number;
+
+  @Prop({ default: 0 })
+  pointsRedeemed: number;
+
+  @Prop({ default: 0 })
+  pointsEarned: number;
+
+  @Prop({
+    type: [
+      {
+        status: { type: String, required: true },
+        timestamp: { type: Date, required: true },
+      },
+    ],
+    default: [],
+  })
+  statusHistory: { status: string; timestamp: Date }[];
 
   @Prop({
     enum: ['Pending', 'Paid', 'Shipped', 'Completed', 'Cancelled'],

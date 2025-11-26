@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../api/axios";
 import CartItem from "./CartItem";
+import { useAuth } from "../../auth/useAuth";
 
 interface CartItemType {
   _id?: string;
@@ -30,6 +31,7 @@ const CartPage: React.FC = () => {
   const [address, setAddress] = useState("");
 
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const getKey = (item: CartItemType): string => {
     if (item._id) return `srv_${item._id}`;
@@ -113,6 +115,16 @@ const CartPage: React.FC = () => {
   const handleCheckout = () => {
     if (selectedKeys.size === 0) {
       alert("Vui lòng chọn ít nhất một sản phẩm!");
+      return;
+    }
+
+    const itemsToPay = cartItems.filter((item) => selectedKeys.has(getKey(item)));
+
+    const token = localStorage.getItem("token");
+    if (token && user) {
+      navigate("/payment", {
+        state: { cartItems: itemsToPay, total: selectedTotal },
+      });
       return;
     }
 
