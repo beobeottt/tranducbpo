@@ -9,6 +9,7 @@ import { Product, ProductDocument } from './schema/product.schema';
 import { Review, ReviewDocument } from './schema/review.schema';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { BadRequestException } from '@nestjs/common';
+import { EsService } from 'src/elasticsearch/es/es.service';
 
 @Injectable()
 export class ProductService {
@@ -18,11 +19,17 @@ export class ProductService {
 
     @InjectModel(Review.name)
     private reviewModel: Model<ReviewDocument>,
+    private readonly esService: EsService,
   ) {}
 
   async create(dto: CreateProductDto): Promise<Product> {
-    const created = new this.productModel(dto);
-    return created.save();
+    const created = await new this.productModel(dto).save();
+    try {
+      await this.esService.indexProduct(created as any);
+    } catch (e) {
+      console.warn('Elastic indexing failed on create:', e);
+    }
+    return created;
   }
 
   async findAll(): Promise<Product[]> {
@@ -40,6 +47,11 @@ export class ProductService {
       .findByIdAndUpdate(id, dto, { new: true })
       .exec();
     if (!product) throw new NotFoundException(`Product with ID ${id} not found`);
+    try {
+      await this.esService.indexProduct(product as any);
+    } catch (e) {
+      console.warn('Elastic indexing failed on update:', e);
+    }
     return product;
   }
 
@@ -181,10 +193,27 @@ async filterProducts(dto: FilterProductDto) {
   }
 
   if (dto.search) {
-    query.$or = [
-      { productName: { $regex: dto.search, $options: 'i' } },
-      { description: { $regex: dto.search, $options: 'i' } },
-    ];
+    const ids = await this.esService.searchProducts(dto.search);
+    if (ids.length === 0) {
+      return {
+        products: [],
+        pagination: {
+          page: dto.page || 1,
+          limit: dto.limit || 10,
+          total: 0,
+          totalPages: 0,
+        },
+        filters: {
+          brand: dto.brand || undefined,
+          priceMin: dto.priceMin || undefined,
+          priceMax: dto.priceMax || undefined,
+          typeProduct: dto.typeProduct || undefined,
+          minQuantity: dto.minQuantity || undefined,
+          search: dto.search || undefined,
+        },
+      };
+    }
+    query._id = { $in: ids.map((id) => new Types.ObjectId(id)) };
   }
 
   // Sắp xếp

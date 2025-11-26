@@ -9,6 +9,8 @@ services:
       - "3000:3000"
     env_file:
       - ./my-backend/.env
+    environment:
+      - ELASTICSEARCH_NODE=http://elasticsearch:9200
     restart: unless-stopped
 
   frontend:
@@ -20,4 +22,14 @@ services:
       - CHOKIDAR_USEPOLLING=true  
     depends_on:
       - backend
+    restart: unless-stopped
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
     restart: unless-stopped

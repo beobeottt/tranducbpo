@@ -1,6 +1,6 @@
 import { ShoppingCart, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import axiosInstance from "../api/axios";
 import io from "socket.io-client";
@@ -10,6 +10,8 @@ const NavBar = () => {
   const [open, setOpen] = useState(false);
   const { user, logout } = useAuth();
   const [cartCount, setCartCount] = useState(0);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // --- Socket Realtime ---
   useEffect(() => {
@@ -58,6 +60,25 @@ const NavBar = () => {
     return () => window.removeEventListener("storage", loadCartCount);
   }, []);
 
+  const handleSearchSubmit = () => {
+    const term = search.trim();
+    const params = new URLSearchParams(location.search);
+
+    if (term) {
+      params.set("search", term);
+    } else {
+      params.delete("search");
+    }
+
+    navigate(`/products${params.toString() ? `?${params.toString()}` : ""}`);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearchSubmit();
+    }
+  };
+
   const getProfileLink = () => {
     if (!user) return null;
     const id = user._id || user.id;
@@ -83,6 +104,7 @@ const NavBar = () => {
             placeholder="Tìm kiếm sản phẩm..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             className="w-full px-3 py-2 rounded text-gray-700 focus:outline-none"
           />
         </div>
@@ -137,6 +159,7 @@ const NavBar = () => {
             placeholder="Tìm kiếm sản phẩm..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             className="w-full px-3 py-2 rounded text-gray-700 focus:outline-none"
           />
 
