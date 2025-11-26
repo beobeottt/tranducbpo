@@ -17,10 +17,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           className="w-full h-48 object-cover group-hover:scale-105 transition"
         />
         <div className="p-4">
-          <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-orange-600">
+          <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-blue-600">
             {product.productName}
           </h3>
-          <p className="text-xl font-bold text-orange-600 mt-2">
+          <p className="text-xl font-bold text-blue-600 mt-2">
             {product.price.toLocaleString("vi-VN")}₫
           </p>
           {product.quantity < 5 && (

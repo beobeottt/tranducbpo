@@ -140,15 +140,15 @@ const AdminProducts = () => {
               <td className="p-3 text-center space-x-2">
                 <button
                   onClick={() => handleEdit(p)}
-                  className="px-3"
+                  className="px-3 py-1 bg-sky-400 text-white rounded hover:bg-sky-500"
                 >
-                  Edit
+                  Edit✏️
                 </button>
                 <button
                   onClick={() => handleDelete(p._id)}
-                  className="px-3"
+                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                 >
-                  Delete
+                  Delete🗑
                 </button>
               </td>
             </tr>
