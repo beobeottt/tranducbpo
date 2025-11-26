@@ -31,24 +31,29 @@ const LoginPage: React.FC = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:3000/auth/google";
-    window.location.href = `${process.env.VITE_API_URL || "http://localhost:3000"}/auth/google`;
-
+    const api = process.env.REACT_APP_API_URL || "http://localhost:3000";
+    window.location.href = `${api}/auth/google`;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-400 to-red-500 flex items-center justify-center p-4">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{background: "linear-gradient(135deg, #3B82F6, #a2c8adff, #000000)"}}
+>
       <div className="flex w-full max-w-6xl bg-white rounded-xl shadow-2xl overflow-hidden">
         {/* Banner trái */}
-        <div className="hidden md:flex flex-1 bg-gradient-to-br from-sky-400 to-red-500 items-center justify-center p-8">
+        <div className="hidden md:flex flex-1 items-center justify-center p-8"
+          style={{ background: "linear-gradient(135deg, #3B82F6, #a2c8adff )" }}
+>
           <h2 className="text-5xl font-bold text-white text-center leading-tight">
             ĐỨC BO ĐẸP TRAI
           </h2>
-        </div>
+      </div>
+
 
         {/* Form login */}
         <div className="w-full md:w-1/2 p-8 space-y-6">
-          <h2 className="text-3xl font-bold text-gray-800 text-center">Đăng nhập</h2>
+          <h2 className="text-3xl font-bold text-gray-800 text-center">ĐĂNG NHẬP</h2>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <input
@@ -75,7 +80,7 @@ const LoginPage: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full bg-blue-500 text-white font-bold py-3 rounded-lg hover:bg-blue-600 transition transform hover:scale-105"
+              className="w-full bg-sky-400 text-white font-bold py-3 rounded-lg hover:bg-sky-500 transition transform hover:scale-105"
             >
               ĐĂNG NHẬP
             </button>
@@ -114,7 +119,7 @@ const LoginPage: React.FC = () => {
           </div>
 
           <p className="text-center text-sm text-gray-600">
-            Bạn mới biết đến TGL?{" "}
+            Bạn mới biết đến BoDepTrai?{" "}
             <Link to="/register" className="text-red-500 font-bold hover:underline">
               Đăng ký ngay
             </Link>

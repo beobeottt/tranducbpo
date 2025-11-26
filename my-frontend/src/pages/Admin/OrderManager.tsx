@@ -108,7 +108,7 @@ const AdminOrders = () => {
                     setEditingOrder(o);
                     setNewStatus(o.status);
                   }}
-                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className="px-3 py-1 bg-sky-400 text-white rounded hover:bg-sky-500"
                 >
                   ✏️ Edit
                 </button>

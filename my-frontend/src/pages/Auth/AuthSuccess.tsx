@@ -21,7 +21,7 @@ const AuthSuccess = () => {
           localStorage.setItem("user", JSON.stringify(res.data));
 
           alert("✅ Google login success!");
-          navigate("/home");
+          navigate("/");
         } catch (err) {
           console.error("Fetch user failed:", err);
           alert("❌ Failed to load user info.");
