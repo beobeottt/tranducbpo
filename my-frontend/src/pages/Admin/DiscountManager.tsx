@@ -145,7 +145,7 @@ const AdminDiscounts = () => {
         <button
           type="submit"
           disabled={submitting}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          className="bg-sky-400 text-white px-4 py-2 rounded hover:bg-sky-500 disabled:opacity-50"
         >
           {submitting ? "Adding..." : "Add Discount"}
         </button>

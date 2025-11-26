@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
+import axiosInstance from "../../api/axios";
 
 const AuthSuccess = () => {
   const navigate = useNavigate();
@@ -19,7 +20,26 @@ const AuthSuccess = () => {
     const token = searchParams.get("token");
 
     const handleGoogleLogin = async () => {
-      if (!token) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get("token");
+
+      if (token) {
+        localStorage.setItem("token", token);
+
+        try {
+          const res = await axiosInstance.get("/auth/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          localStorage.setItem("user", JSON.stringify(res.data));
+
+          alert("✅ Google login success!");
+          navigate("/");
+        } catch (err) {
+          console.error("Fetch user failed:", err);
+          alert("❌ Failed to load user info.");
+          navigate("/login");
+        }
+      } else {
         alert("❌ Login failed: missing token.");
         navigate("/login");
         return;

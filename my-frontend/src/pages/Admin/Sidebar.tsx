@@ -14,7 +14,7 @@ const Sidebar = () => {
 
   return (
     <aside className="w-60 bg-[#1E293B] text-gray-100 min-h-screen flex flex-col p-4">
-      <h2 className="text-lg font-bold mb-6 text-center">🛍️ Admin Panel</h2>
+      <h2 className="text-lg font-bold mb-6 text-center">🛍️ ADMIN PANEL</h2>
       <nav className="flex flex-col gap-2">
         {menu.map((item) => (
           <Link
@@ -22,7 +22,7 @@ const Sidebar = () => {
             to={item.path}
             className={`flex items-center gap-2 px-3 py-2 rounded-md transition ${
               location.pathname === item.path
-                ? "bg-orange-500 text-white"
+                ? "bg-sky-600 text-white"
                 : "hover:bg-gray-700"
             }`}
           >

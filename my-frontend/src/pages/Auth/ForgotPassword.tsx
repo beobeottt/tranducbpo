@@ -25,7 +25,7 @@ const ForgotPassword: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="w-full max-w-md bg-white shadow-lg rounded-xl p-6">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Forgot Password
+          FORGOT PASSWORD
         </h2>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
@@ -45,7 +45,7 @@ const ForgotPassword: React.FC = () => {
             type="submit"
             disabled={loading}
             className={`w-full py-2 text-white rounded-lg transition 
-            ${loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
+            ${loading ? "bg-blue-400 cursor-not-allowed" : "bg-sky-400 hover:bg-sky-500"}`}
           >
             {loading ? "Sending..." : "Send New Password"}
           </button>

@@ -29,7 +29,7 @@ const ProductFilter: React.FC<FilterProps> = ({ onFilterChange, initialFilters }
 
       {/* BRAND */}
       <div>
-        <label className="font-semibold">Thương hiệu</label>
+        <label className="font-semibold">Thương Hiệu Nổi Bật</label>
         <select
           className="w-full border p-2 rounded mt-1"
           value={brand}
@@ -44,7 +44,7 @@ const ProductFilter: React.FC<FilterProps> = ({ onFilterChange, initialFilters }
 
       {/* PRICE RANGE */}
       <div className="mt-4">
-        <label className="font-semibold">Khoảng giá</label>
+        <label className="font-semibold">Tầm Giá Sản Phẩm</label>
 
         <div className="flex items-center gap-4 mt-2">
           <span>{priceMin.toLocaleString()}₫</span>
@@ -61,7 +61,7 @@ const ProductFilter: React.FC<FilterProps> = ({ onFilterChange, initialFilters }
         </div>
       </div>
       <div className="mt-4">
-        <label className="font-semibold">Loại sản phẩm</label>
+        <label className="font-semibold">Loại Sản Phẩm</label>
         <select
           className="w-full border p-2 rounded mt-1"
           value={typeProduct}
