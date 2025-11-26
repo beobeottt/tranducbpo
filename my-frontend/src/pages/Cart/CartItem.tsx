@@ -28,7 +28,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onDelete, onSelect, isSelecte
           type="checkbox"
           checked={isSelected}
           onChange={(e) => onSelect(key, e.target.checked)}
-          className="mt-1 w-5 h-5 text-orange-500 rounded focus:ring-orange-400"
+          className="mt-1 w-5 h-5 text-blue-500 rounded focus:ring-blue-400"
         />
 
         {/* Hình ảnh */}
@@ -49,7 +49,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onDelete, onSelect, isSelecte
         <div className="text-right">
           <p className="font-bold text-red-600">{item.price.toLocaleString()}₫</p>
           <p className="text-sm">x{item.quantity}</p>
-          <p className="font-semibold text-orange-600">
+          <p className="font-semibold text-blue-600">
             {(item.price * item.quantity).toLocaleString()}₫
           </p>
           <button

@@ -184,7 +184,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
               {/* Info */}
               <Link
                 to={`/product/${product._id}`}
-                className="hover:text-orange-600 transition"
+                className="hover:text-blue-600 transition"
               >
                 <h3 className="text-sm font-semibold mb-1 line-clamp-2">
                   {product.productName}
@@ -197,7 +197,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
               <div className="mt-auto flex items-center justify-between gap-2">
                 <button
                   onClick={() => handleAddToCart(product)}
-                  className="flex-1 bg-blue-700 text-white py-1.5 rounded-lg hover:bg-orange-600 transition"
+                  className="flex-1 bg-blue-700 text-white py-1.5 rounded-lg hover:bg-blue-700 transition"
                 >
                   🛒 Thêm vào giỏ
                 </button>

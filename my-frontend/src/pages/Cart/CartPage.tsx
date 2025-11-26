@@ -176,21 +176,21 @@ const CartPage: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-20">
-        <div className="animate-spin w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full"></div>
       </div>
     );
   }
 
   return (
     <div className="max-w-5xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-6 text-orange-600">Giỏ Hàng Của Bạn</h1>
+      <h1 className="text-3xl font-bold mb-6 text-blue-600">Giỏ Hàng Của Bạn</h1>
 
       {cartItems.length === 0 ? (
         <div className="text-center py-20 bg-gray-50 rounded-xl">
           <p className="text-xl text-gray-500 mb-4">Giỏ hàng trống</p>
           <button
             onClick={() => navigate("/")}
-            className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
           >
             Tiếp tục mua sắm
           </button>
@@ -204,7 +204,7 @@ const CartPage: React.FC = () => {
                 selectedKeys.size === cartItems.length && cartItems.length > 0
               }
               onChange={toggleSelectAll}
-              className="w-5 h-5 text-orange-600"
+              className="w-5 h-5 text-blue-600"
             />
             <span className="font-medium">
               Chọn tất cả ({selectedKeys.size}/{cartItems.length})
@@ -238,7 +238,7 @@ const CartPage: React.FC = () => {
 
             <button
               onClick={handleCheckout}
-              className={`w-full py-4 rounded-lg font-bold text-white bg-orange-500 hover:bg-orange-600 text-lg shadow-lg`}
+              className={`w-full py-4 rounded-lg font-bold text-white bg-blue-500 hover:bg-blue-600 text-lg shadow-lg`}
             >
               Tiến hành thanh toán
             </button>
@@ -262,7 +262,7 @@ const CartPage: React.FC = () => {
 
             <button
               onClick={checkEmail}
-              className="w-full bg-orange-500 text-white py-2 rounded"
+              className="w-full bg-blue-500 text-white py-2 rounded"
             >
               Tiếp tục
             </button>
