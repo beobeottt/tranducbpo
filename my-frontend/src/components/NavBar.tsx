@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, X } from "lucide-react";
+import { ShoppingCart, Menu, X, Shield } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
@@ -89,6 +89,7 @@ const NavBar = () => {
   const profileLink = getProfileLink();
   const displayName = user?.fullname || user?.name || user?.email || "User";
   const displayInitial = displayName.charAt(0).toUpperCase();
+  const isAdmin = user?.role === "Admin" || user?.role === "admin";
 
   return (
     <nav 
@@ -125,6 +126,18 @@ const NavBar = () => {
               )}
             </Link>
           </div>
+
+          {/* Admin Button - chỉ hiển thị cho Admin */}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="hidden md:flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition font-medium"
+              title="Quản trị viên"
+            >
+              <Shield className="w-5 h-5" />
+              <span>Admin</span>
+            </Link>
+          )}
 
           {/* User */}
           {profileLink ? (
@@ -179,6 +192,16 @@ const NavBar = () => {
                   </div>
                   <span>{displayName}</span>
                 </Link>
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    className="hover:underline hover:text-gray-200 transition flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+                    onClick={() => setOpen(false)}
+                  >
+                    <Shield className="w-4 h-4" />
+                    <span>Admin Panel</span>
+                  </Link>
+                )}
                 <button
                   onClick={() => {
                     logout();

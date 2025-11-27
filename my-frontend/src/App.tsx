@@ -1,7 +1,7 @@
+// src/App.tsx
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom"; // Bỏ BrowserRouter nếu đã dùng ở index.tsx
+import { Routes, Route, Navigate } from "react-router-dom";
 
-// --- Import các trang ---
 import LoginPage from "./pages/Auth/LoginPage";
 import RegisterPage from "./pages/Auth/RegisterPage";
 import HomePage from "./pages/Home/HomePage";
@@ -19,20 +19,30 @@ import AuthSuccess from "./pages/Auth/AuthSuccess";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import AiChat from "./components/aichatbox";
 
-// --- Import Context ---
 import { AuthProvider } from "./auth/useAuth";
 
-// --- 1. IMPORT BANNER MỚI TẠO Ở ĐÂY ---
 import FloatingBanner from "./components/FloatingBanner";
+import FloatingActionButtons from "./components/ActionButton";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
     <AuthProvider>
-      
-      {/* 2. ĐẶT BANNER Ở ĐÂY (Ngoài Routes để hiện mọi nơi) */}
       <FloatingBanner />
-
+      <FloatingActionButtons />
+      <Toaster position="top-right" />
       <Routes>
+        {/* Redirect "/" → ProductsPage với params */}
+        <Route
+          path="/"
+          element={
+            <Navigate
+              to="/home?priceMin=0&priceMax=50000000&page=1"
+              replace
+            />
+          }
+        />
+
         {/* Public Routes */}
         <Route path="/home" element={<HomePage />} />
         <Route path="/products" element={<ProductsPage />} />
@@ -51,16 +61,30 @@ function App() {
         <Route path="/user/profile/:id" element={<ProfilePage />} />
 
         {/* Admin Routes */}
-        <Route path="/admin" element={<DashboardLayout title="Admin"><></></DashboardLayout>} />
+        <Route
+          path="/admin"
+          element={
+            <DashboardLayout title="Admin">
+              <></>
+            </DashboardLayout>
+          }
+        />
         <Route path="/admin/product" element={<ProductManager />} />
         <Route path="/admin/order" element={<OrderManager />} />
         <Route path="/admin/user" element={<UserManager />} />
         <Route path="/admin/discount" element={<DiscountManager />} />
 
-        {/* Redirect mặc định */}
-        <Route path="*" element={<Navigate to="/home" replace />} />
-      </Routes>
-      
+        {/* Default fallback */}
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/home?priceMin=0&priceMax=50000000&page=1"
+              replace
+            />
+          }
+        />
+        </Routes>
     </AuthProvider>
   );
 }
