@@ -4,7 +4,7 @@ import './style.css';
 
 const FloatingBanner: React.FC = () => {
     const location = useLocation();
-    if (location.pathname !== '/products') {
+    if (location.pathname !== '/home') {
         return null;
   }
   return (
