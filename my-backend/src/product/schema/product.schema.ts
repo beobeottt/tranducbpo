@@ -22,6 +22,9 @@ export class Product {
 
   @Prop({ enum: ['New Product', 'Best Seller'], default: 'New Product' })
   typeProduct: 'New Product' | 'Best Seller';
+
+  @Prop()
+  img: string;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

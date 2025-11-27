@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { CreditCard, Lock, Shield, CheckCircle, X, Truck, DollarSign, ShoppingCart } from 'lucide-react';
 import axiosInstance from '../api/axios';
 import { useAuth } from '../auth/useAuth';
+import { getImageUrl } from '../utils/imageUtils';
 
 interface CartItemType {
   _id?: string;
@@ -207,7 +208,7 @@ const PaymentPage: React.FC = () => {
                   {cartItems.map((item: CartItemType) => (
                     <div key={item._id || item.productId} className="flex items-center gap-4 p-3 border rounded-lg">
                       <img
-                        src={item.image || '/placeholder.png'}
+                        src={getImageUrl(item.image || item.url)}
                         alt={item.productName}
                         className="w-16 h-16 object-cover rounded"
                       />

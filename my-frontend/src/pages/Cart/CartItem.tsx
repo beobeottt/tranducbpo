@@ -1,4 +1,5 @@
 import React from "react";
+import { getImageUrl } from "../../utils/imageUtils";
 
 interface CartItemProps {
   item: {
@@ -33,7 +34,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onDelete, onSelect, isSelecte
 
         {/* Hình ảnh */}
         <img
-          src={item.image || "https://via.placeholder.com/150?text=No+Image"}
+          src={getImageUrl(item.image)}
           alt={item.productName}
           className="w-20 h-20 object-cover rounded-lg"
         />

@@ -137,7 +137,7 @@ const ProductsPage = () => {
     setSearchParams(currentParams);
   };
 
-  // Pagination
+
   const handlePageChange = (newPage: number) => {
     const currentParams = new URLSearchParams(searchParams);
     currentParams.set("page", String(newPage));

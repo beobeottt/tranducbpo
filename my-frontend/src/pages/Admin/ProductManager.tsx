@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "./DashboardLayout";
 import axiosInstance from "../../api/axios";
+import { getImageUrl } from "../../utils/imageUtils";
 
 interface Product {
   _id?: string;
@@ -9,6 +10,8 @@ interface Product {
   price: number;
   quantity: number;
   typeProduct: "New Product" | "Best Seller";
+  img?: string;
+  brand?: string;
 }
 
 const AdminProducts = () => {
@@ -24,7 +27,11 @@ const AdminProducts = () => {
     price: 0,
     quantity: 0,
     typeProduct: "New Product",
+    brand: "",
+    img: "",
   });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
 
   const fetchProducts = async () => {
@@ -49,6 +56,18 @@ const AdminProducts = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   const handleAdd = () => {
     setEditingProduct(null);
@@ -58,7 +77,11 @@ const AdminProducts = () => {
       price: 0,
       quantity: 0,
       typeProduct: "New Product",
+      brand: "",
+      img: "",
     });
+    setSelectedImage(null);
+    setImagePreview(null);
     setIsModalOpen(true);
   };
 
@@ -66,6 +89,8 @@ const AdminProducts = () => {
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setFormData(product);
+    setSelectedImage(null);
+    setImagePreview(product.img || null);
     setIsModalOpen(true);
   };
 
@@ -86,16 +111,41 @@ const AdminProducts = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (editingProduct) {
+      const submitData = new FormData();
+      submitData.append("productName", formData.productName);
+      submitData.append("description", formData.description);
+      submitData.append("price", formData.price.toString());
+      submitData.append("quantity", formData.quantity.toString());
+      submitData.append("typeProduct", formData.typeProduct);
+      if (formData.brand) {
+        submitData.append("brand", formData.brand);
+      }
+      if (selectedImage) {
+        submitData.append("image", selectedImage);
+      }
 
-        await axiosInstance.patch(`http://localhost:3000/product/${editingProduct._id}`, formData);
+      if (editingProduct) {
+        await axiosInstance.patch(
+          `http://localhost:3000/product/${editingProduct._id}`,
+          submitData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
         alert("✅ Cập nhật sản phẩm thành công!");
       } else {
-
-        await axiosInstance.post("http://localhost:3000/product", formData);
+        await axiosInstance.post("http://localhost:3000/product", submitData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
         alert("✅ Thêm sản phẩm thành công!");
       }
       setIsModalOpen(false);
+      setSelectedImage(null);
+      setImagePreview(null);
       fetchProducts();
     } catch (err) {
       console.error("Lỗi khi lưu sản phẩm:", err);
@@ -121,6 +171,7 @@ const AdminProducts = () => {
       <table className="min-w-full bg-white shadow-md rounded">
         <thead>
           <tr className="bg-gray-200 text-left">
+            <th className="p-3">Ảnh</th>
             <th className="p-3">Name</th>
             <th className="p-3">Description</th>
             <th className="p-3">Price</th>
@@ -132,9 +183,22 @@ const AdminProducts = () => {
         <tbody>
           {products.map((p) => (
             <tr key={p._id} className="border-b hover:bg-gray-50">
+              <td className="p-3">
+                {p.img ? (
+                  <img
+                    src={getImageUrl(p.img)}
+                    alt={p.productName}
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                ) : (
+                  <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-400">
+                    No Image
+                  </div>
+                )}
+              </td>
               <td className="p-3">{p.productName}</td>
               <td className="p-3">{p.description}</td>
-              <td className="p-3">{p.price} $</td>
+              <td className="p-3">{p.price} ₫</td>
               <td className="p-3">{p.quantity}</td>
               <td className="p-3">{p.typeProduct}</td>
               <td className="p-3 text-center space-x-2">
@@ -164,6 +228,26 @@ const AdminProducts = () => {
               {editingProduct ? "✏️ Edit Product" : "➕ Add Product"}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-3">
+              {/* Upload Ảnh */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Ảnh sản phẩm</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="w-full border p-2 rounded"
+                />
+                {imagePreview && (
+                  <div className="mt-2">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-32 h-32 object-cover rounded border"
+                    />
+                  </div>
+                )}
+              </div>
+
               <input
                 type="text"
                 name="productName"
@@ -180,6 +264,14 @@ const AdminProducts = () => {
                 value={formData.description}
                 onChange={handleChange}
                 required
+                className="w-full border p-2 rounded"
+              />
+              <input
+                type="text"
+                name="brand"
+                placeholder="Brand"
+                value={formData.brand || ""}
+                onChange={handleChange}
                 className="w-full border p-2 rounded"
               />
               <input

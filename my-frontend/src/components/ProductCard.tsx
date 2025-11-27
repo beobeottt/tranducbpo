@@ -2,6 +2,7 @@
 
 import { Link } from "react-router-dom";
 import { Product } from "../types/product";
+import { getImageUrl } from "../utils/imageUtils";
 
 interface ProductCardProps {
   product: Product;
@@ -12,7 +13,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     <Link to={`/product/${product._id}`} className="group block">
       <div className="border rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all">
         <img
-          src={product.img}
+          src={getImageUrl(product.img)}
           alt={product.productName}
           className="w-full h-48 object-cover group-hover:scale-105 transition"
         />

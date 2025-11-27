@@ -1,4 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards, ValidationPipe, UsePipes } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards, ValidationPipe, UsePipes, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -11,7 +14,31 @@ export class ProductController {
     constructor(private readonly productService: ProductService) { }
 
     @Post()
-    create(@Body() dto: CreateProductDto) {
+    @UseInterceptors(
+        FileInterceptor('image', {
+            storage: diskStorage({
+                destination: './uploads/products',
+                filename: (req, file, cb) => {
+                    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                    const ext = extname(file.originalname);
+                    cb(null, `product-${uniqueSuffix}${ext}`);
+                },
+            }),
+            fileFilter: (req, file, cb) => {
+                if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+                    return cb(new Error('Chỉ chấp nhận file ảnh!'), false);
+                }
+                cb(null, true);
+            },
+        }),
+    )
+    create(
+        @Body() dto: CreateProductDto,
+        @UploadedFile() file?: any,
+    ) {
+        if (file) {
+            dto.img = `/uploads/products/${file.filename}`;
+        }
         return this.productService.create(dto);
     }
     @Get()
@@ -32,7 +59,32 @@ export class ProductController {
     }
 
     @Patch(':id')
-    update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    @UseInterceptors(
+        FileInterceptor('image', {
+            storage: diskStorage({
+                destination: './uploads/products',
+                filename: (req, file, cb) => {
+                    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                    const ext = extname(file.originalname);
+                    cb(null, `product-${uniqueSuffix}${ext}`);
+                },
+            }),
+            fileFilter: (req, file, cb) => {
+                if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+                    return cb(new Error('Chỉ chấp nhận file ảnh!'), false);
+                }
+                cb(null, true);
+            },
+        }),
+    )
+    update(
+        @Param('id') id: string,
+        @Body() dto: UpdateProductDto,
+        @UploadedFile() file?: any,
+    ) {
+        if (file) {
+            dto.img = `/uploads/products/${file.filename}`;
+        }
         return this.productService.update(id, dto);
     }
 

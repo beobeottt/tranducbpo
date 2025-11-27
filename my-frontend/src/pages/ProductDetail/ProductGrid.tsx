@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axiosInstance from "../../api/axios";
 import { Product } from "../../types/product";
 import { AxiosError } from "axios";
+import { getImageUrl } from "../../utils/imageUtils";
 
 interface ProductGridProps {
   products: Product[];
@@ -175,7 +176,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, search = "" }) => {
               {/* Image */}
               <Link to={`/product/${product._id}`}>
                 <img
-                  src={product.img || "https://via.placeholder.com/300?text=No+Image"}
+                  src={getImageUrl(product.img)}
                   alt={product.productName}
                   className="w-full h-40 object-cover rounded-lg mb-3 hover:opacity-90 transition"
                 />

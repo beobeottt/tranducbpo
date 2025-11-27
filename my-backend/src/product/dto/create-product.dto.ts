@@ -19,4 +19,8 @@ export class CreateProductDto {
   @IsOptional()
   @IsIn(['New Product', 'Best Seller'])
   typeProduct?: 'New Product' | 'Best Seller';
+
+  @IsOptional()
+  @IsString()
+  img?: string;
 }

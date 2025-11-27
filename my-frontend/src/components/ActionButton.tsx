@@ -4,7 +4,14 @@ import { SiZalo } from "react-icons/si";
 import { OpenAI } from "openai";
 import { OPENAI_API_KEY } from "../config/ai";
 
-const openai = new OpenAI({ apiKey: OPENAI_API_KEY, dangerouslyAllowBrowser: true });
+const getOpenAIClient = () => {
+  if (!OPENAI_API_KEY) {
+    console.warn("Missing OpenAI API key. Set REACT_APP_OPENAI_KEY in your .env file.");
+    return null;
+  }
+
+  return new OpenAI({ apiKey: OPENAI_API_KEY, dangerouslyAllowBrowser: true });
+};
 
 const Icon: React.FC<{ icon: any; className?: string }> = ({ icon: I, className }) => (
   <I className={className} />
@@ -45,6 +52,18 @@ const FloatingActionButtons: React.FC = () => {
     const userMessage = input.trim();
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    const openai = getOpenAIClient();
+    if (!openai) {
+      setMessages(prev => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Hệ thống AI chưa được cấu hình API key. Vui lòng liên hệ quản trị viên để bật tính năng này.",
+        },
+      ]);
+      return;
+    }
+
     setLoading(true);
 
     try {

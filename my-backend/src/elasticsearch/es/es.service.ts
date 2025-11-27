@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { Product } from 'src/product/schema/product.schema';
 
+
 @Injectable()
 export class EsService {
   private readonly index = 'products';
@@ -17,10 +18,11 @@ export class EsService {
       id,
       document: {
         productName: product.productName,
-        description: (product as any).description || '',
+        description: product.description || '',
         price: product.price,
-        brand: (product as any).brand || '',
+        brand: product.brand || '',
         typeProduct: product.typeProduct,
+        // thêm các field bạn muốn search
       },
     });
   }
@@ -28,21 +30,18 @@ export class EsService {
   async searchProducts(term: string): Promise<string[]> {
     if (!term.trim()) return [];
 
-    const result = await this.es.search<{
-      productName: string;
-      description: string;
-    }>({
+    const result = await this.es.search({
       index: this.index,
       query: {
         multi_match: {
           query: term,
-          fields: ['productName^3', 'description'],
+          fields: ['productName^3', 'description', 'brand'],
           fuzziness: 'AUTO',
         },
       },
       size: 100,
     });
 
-    return (result.hits.hits || []).map((hit) => hit._id as string);
+    return result.hits.hits.map((hit: any) => hit._id as string);
   }
 }
