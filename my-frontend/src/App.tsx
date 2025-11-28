@@ -14,6 +14,7 @@ import DashboardLayout from "./pages/Admin/DashboardLayout";
 import ProfilePage from "./pages/Profile/ProfilePage";
 import CartPage from "./pages/Cart/CartPage";
 import PaymentPage from "./sections/PaymentPage";
+import VNPayResult from "./pages/Payment/VNPayResult";
 import ProductsPage from "./pages/Products/ProductsPage";
 import AuthSuccess from "./pages/Auth/AuthSuccess";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
@@ -49,6 +50,7 @@ function App() {
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/payment/vnpay-result" element={<VNPayResult />} />
         <Route path="/chatbot" element={<AiChat />} />
 
         {/* Auth Routes */}

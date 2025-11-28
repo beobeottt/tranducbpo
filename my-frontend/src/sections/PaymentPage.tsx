@@ -137,6 +137,28 @@ const PaymentPage: React.FC = () => {
       return;
     }
 
+    if (paymentMethod === 'vnpay') {
+      if (payableTotal < 1000) {
+        setOrderError('VNPay yêu cầu số tiền tối thiểu 1,000₫');
+        return;
+      }
+      try {
+        setSubmittingOrder(true);
+        setOrderError('');
+        const response = await axiosInstance.post('/payment/vnpay/create', {
+          amount: payableTotal,
+          orderDescription: `Thanh toán đơn hàng ${orderItems[0]?.productName || ''}`,
+        });
+        window.location.href = response.data.paymentUrl;
+      } catch (err: any) {
+        console.error(err);
+        setOrderError(err.response?.data?.message || 'Không thể khởi tạo thanh toán VNPay.');
+      } finally {
+        setSubmittingOrder(false);
+      }
+      return;
+    }
+
     try {
       setSubmittingOrder(true);
       setOrderError('');
@@ -329,6 +351,22 @@ const PaymentPage: React.FC = () => {
                       <span className="font-medium">Thanh toán khi nhận hàng</span>
                     </div>
                   </label>
+                  <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      value="vnpay"
+                      checked={paymentMethod === 'vnpay'}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <div className="ml-3 flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-red-500" />
+                      <div>
+                        <span className="font-medium">VNPay (Demo)</span>
+                        <p className="text-xs text-gray-500">Chuyển hướng sang sandbox của VNPay</p>
+                      </div>
+                    </div>
+                  </label>
                 </div>
 
                 {paymentMethod === 'credit-card' && (
@@ -402,6 +440,16 @@ const PaymentPage: React.FC = () => {
                 {paymentMethod === 'cod' && (
                   <div className="p-4 bg-blue-50 rounded-lg">
                     <p className="text-blue-800">Thanh toán khi nhận hàng qua chuyển khoản ngân hàng hoặc tiền mặt.</p>
+                  </div>
+                )}
+
+                {paymentMethod === 'vnpay' && (
+                  <div className="p-4 bg-red-50 rounded-lg text-sm text-red-700 space-y-2">
+                    <p>
+                      Bạn sẽ được chuyển tới cổng thanh toán VNPay Sandbox để hoàn tất giao dịch. Vui lòng không đóng trình duyệt
+                      cho đến khi quay lại trang kết quả.
+                    </p>
+                    <p>Số tiền thanh toán: <span className="font-semibold">{payableTotal.toLocaleString()} ₫</span></p>
                   </div>
                 )}
 
