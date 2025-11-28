@@ -33,7 +33,6 @@ function App() {
       <FloatingActionButtons />
       <Toaster position="top-right" />
       <Routes>
-        {/* Redirect "/" → ProductsPage với params */}
         <Route
           path="/"
           element={
