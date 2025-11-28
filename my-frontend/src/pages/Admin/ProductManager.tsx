@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DashboardLayout from "./DashboardLayout";
 import axiosInstance from "../../api/axios";
 import { getImageUrl } from "../../utils/imageUtils";
@@ -32,24 +32,25 @@ const AdminProducts = () => {
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-
-  const fetchProducts = async () => {
-    setLoading(true);
+  const fetchProducts = useCallback(async () => {
     try {
-      const res = await axiosInstance.get("http://localhost:3000/product");
+      setLoading(true);
+      const res = await axiosInstance.get("/product");
       setProducts(res.data);
+      setError("");
     } catch (err) {
       console.error("Error fetching products:", err);
       setError("Không thể tải danh sách sản phẩm!");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -90,7 +91,7 @@ const AdminProducts = () => {
     setEditingProduct(product);
     setFormData(product);
     setSelectedImage(null);
-    setImagePreview(product.img || null);
+    setImagePreview(product.img ? getImageUrl(product.img) : null);
     setIsModalOpen(true);
   };
 
@@ -110,6 +111,8 @@ const AdminProducts = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
     try {
       const submitData = new FormData();
       submitData.append("productName", formData.productName);
@@ -126,7 +129,7 @@ const AdminProducts = () => {
 
       if (editingProduct) {
         await axiosInstance.patch(
-          `http://localhost:3000/product/${editingProduct._id}`,
+          `/product/${editingProduct._id}`,
           submitData,
           {
             headers: {
@@ -136,7 +139,7 @@ const AdminProducts = () => {
         );
         alert("✅ Cập nhật sản phẩm thành công!");
       } else {
-        await axiosInstance.post("http://localhost:3000/product", submitData, {
+        await axiosInstance.post("/product", submitData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -146,10 +149,12 @@ const AdminProducts = () => {
       setIsModalOpen(false);
       setSelectedImage(null);
       setImagePreview(null);
-      fetchProducts();
+      await fetchProducts();
     } catch (err) {
       console.error("Lỗi khi lưu sản phẩm:", err);
       alert("❌ Lưu sản phẩm thất bại!");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -312,9 +317,18 @@ const AdminProducts = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                  disabled={submitting}
+                  className={`px-4 py-2 rounded text-white ${
+                    submitting
+                      ? "bg-green-300 cursor-not-allowed"
+                      : "bg-green-500 hover:bg-green-600"
+                  }`}
                 >
-                  {editingProduct ? "Update" : "Add"}
+                  {submitting
+                    ? "Đang lưu..."
+                    : editingProduct
+                    ? "Update"
+                    : "Add"}
                 </button>
               </div>
             </form>
