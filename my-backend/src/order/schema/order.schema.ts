@@ -1,10 +1,39 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from "mongoose";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
 export type OrderDocument = Order & Document;
 
+@Schema({ _id: false })
+export class OrderShippingAddress {
+  @Prop()
+  fullName: string;
+
+  @Prop()
+  phone: string;
+
+  @Prop()
+  addressLine: string;
+
+  @Prop()
+  ward?: string;
+
+  @Prop()
+  district?: string;
+
+  @Prop()
+  city?: string;
+
+  @Prop()
+  note?: string;
+}
+
+export const OrderShippingAddressSchema =
+  SchemaFactory.createForClass(OrderShippingAddress);
+
 @Schema({timestamps: true})
 export class Order{
+
+    _id: string;
 
     @Prop({ required: true })
     userId: string;
@@ -53,6 +82,9 @@ export class Order{
     default: 'Pending',
   })
   status: string;
+
+  @Prop({ type: OrderShippingAddressSchema })
+  shippingAddress?: OrderShippingAddress;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

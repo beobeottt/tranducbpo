@@ -1,4 +1,3 @@
-// src/App.tsx
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
@@ -43,7 +42,7 @@ function App() {
           }
         />
 
-        {/* Public Routes */}
+
         <Route path="/home" element={<HomePage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/product/:id" element={<ProductDetail />} />
@@ -51,17 +50,11 @@ function App() {
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/payment/vnpay-result" element={<VNPayResult />} />
         <Route path="/chatbot" element={<AiChat />} />
-
-        {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-
-        {/* User Routes */}
         <Route path="/user/profile/:id" element={<ProfilePage />} />
-
-        {/* Admin Routes */}
         <Route
           path="/admin"
           element={
@@ -74,8 +67,6 @@ function App() {
         <Route path="/admin/order" element={<OrderManager />} />
         <Route path="/admin/user" element={<UserManager />} />
         <Route path="/admin/discount" element={<DiscountManager />} />
-
-        {/* Default fallback */}
         <Route
           path="*"
           element={

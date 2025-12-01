@@ -1,4 +1,19 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards, ValidationPipe, UsePipes, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+  ValidationPipe,
+  UsePipes,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -36,10 +51,19 @@ export class ProductController {
         @Body() dto: CreateProductDto,
         @UploadedFile() file?: any,
     ) {
-        if (file) {
-            dto.img = `/uploads/products/${file.filename}`;
+        const parsedDto: any = { ...dto };
+        if (typeof parsedDto.variants === 'string') {
+          try {
+            parsedDto.variants = JSON.parse(parsedDto.variants);
+          } catch {
+            parsedDto.variants = [];
+          }
         }
-        return this.productService.create(dto);
+
+        if (file) {
+            parsedDto.img = `/uploads/products/${file.filename}`;
+        }
+        return this.productService.create(parsedDto);
     }
     @Get()
     findAll() {
@@ -82,10 +106,18 @@ export class ProductController {
         @Body() dto: UpdateProductDto,
         @UploadedFile() file?: any,
     ) {
-        if (file) {
-            dto.img = `/uploads/products/${file.filename}`;
+        const parsedDto: any = { ...dto };
+        if (typeof parsedDto.variants === 'string') {
+          try {
+            parsedDto.variants = JSON.parse(parsedDto.variants);
+          } catch {
+            parsedDto.variants = [];
+          }
         }
-        return this.productService.update(id, dto);
+        if (file) {
+            parsedDto.img = `/uploads/products/${file.filename}`;
+        }
+        return this.productService.update(id, parsedDto);
     }
 
     @Delete(':id')
@@ -93,27 +125,13 @@ export class ProductController {
         return this.productService.remove(id);
     }
 
-    // @Post(':id/review')
-    // async createReview(
-    //     @Param('id') productId: string,
-    //     @Body() dto: CreateReviewDto,
-    //     @Req() req,
-    // ) {
-
-    //     const userId = req.user?.userId ?? null;
-    //     const fullname = req.user?.fullname ?? "Khách vãng lai";
-
-    //     return this.productService.createReview(productId, userId, fullname, dto);
-    // }
-
-
     @Post(':id/review')
     async createReview(
         @Param('id') productId: string,
         @Body() dto: CreateReviewDto
     ) {
         const userId = dto.userId || null; 
-        const fullname = dto.fullname || "Khách vãng lai"; // hoặc gửi từ frontend nếu muốn
+        const fullname = dto.fullname || "Khách vãng lai";
 
         return this.productService.createReview(productId, userId, fullname, dto);
     }

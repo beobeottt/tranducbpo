@@ -1,5 +1,11 @@
 // src/order/dto/create-order.dto.ts
-import { IsArray, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class OrderItemDto {
@@ -14,6 +20,37 @@ class OrderItemDto {
 
   @IsNumber()
   quantity: number;
+}
+
+class OrderShippingAddressDto {
+  @IsString()
+  @IsOptional()
+  id?: string;
+
+  @IsString()
+  fullName: string;
+
+  @IsString()
+  phone: string;
+
+  @IsString()
+  addressLine: string;
+
+  @IsOptional()
+  @IsString()
+  ward?: string;
+
+  @IsOptional()
+  @IsString()
+  district?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  note?: string;
 }
 
 export class CreateOrderDto {
@@ -31,4 +68,13 @@ export class CreateOrderDto {
   @IsNumber()
   @IsOptional()
   pointsToRedeem?: number;
+
+  @IsOptional()
+  @IsString()
+  shippingAddressId?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => OrderShippingAddressDto)
+  shippingAddress?: OrderShippingAddressDto;
 }

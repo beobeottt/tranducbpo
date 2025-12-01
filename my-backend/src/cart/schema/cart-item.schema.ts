@@ -30,6 +30,11 @@ export class CartItem {
   @Prop({ required: true, min: 0 })
   price: number;
 
+  @Prop({ required: false })
+  variantId?: string;
+
+  @Prop({ required: false })
+  variantLabel?: string;
 
   @Prop({ required: true, min: 1, default: 1 })
   quantity: number;
@@ -47,4 +52,7 @@ export class CartItem {
 export const CartItemSchema = SchemaFactory.createForClass(CartItem);
 
 
-CartItemSchema.index({ userId: 1, productId: 1 }, { unique: true, sparse: true });
+CartItemSchema.index(
+  { userId: 1, productId: 1, variantId: 1 },
+  { unique: true, sparse: true },
+);

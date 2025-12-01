@@ -22,6 +22,14 @@ export class CreateCartItemDto {
     @IsNotEmpty()
     price: number;
 
+  @IsOptional()
+  @IsString()
+  variantId?: string;
+
+  @IsOptional()
+  @IsString()
+  variantLabel?: string;
+
     @IsNumber()
     @IsNotEmpty()
     quantity: number;
@@ -48,6 +56,14 @@ export class UpdateCartItemDto {
     @IsNumber()
     @IsNotEmpty()
     price: number;
+
+  @IsOptional()
+  @IsString()
+  variantId?: string;
+
+  @IsOptional()
+  @IsString()
+  variantLabel?: string;
 
     @IsNumber()
     @IsNotEmpty()

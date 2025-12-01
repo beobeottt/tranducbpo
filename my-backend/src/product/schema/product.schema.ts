@@ -3,6 +3,30 @@ import { Document } from 'mongoose';
 
 export type ProductDocument = Product & Document;
 
+@Schema({ _id: false })
+export class ProductVariant {
+  @Prop({ type: String, default: () => new Date().valueOf().toString() })
+  id: string;
+
+  @Prop({ required: true })
+  label: string;
+
+  @Prop({ required: true })
+  price: number;
+
+  @Prop({ default: 0 })
+  quantity: number;
+
+  @Prop()
+  sku?: string;
+
+  @Prop()
+  image?: string;
+}
+
+export const ProductVariantSchema =
+  SchemaFactory.createForClass(ProductVariant);
+
 @Schema({ timestamps: true })
 export class Product {
   @Prop({ required: true })
@@ -25,6 +49,9 @@ export class Product {
 
   @Prop()
   img: string;
+
+  @Prop({ type: [ProductVariantSchema], default: [] })
+  variants?: ProductVariant[];
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

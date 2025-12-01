@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../api/axios";
 import NavBar from "../../components/NavBar";
 import { useAuth } from "../../auth/useAuth";
+import { ShippingAddress } from "../../types/user";
 
 interface User {
   _id: string;
@@ -46,6 +47,25 @@ const ProfilePage: React.FC = () => {
   const [ordersLoading, setOrdersLoading] = useState<boolean>(true);
   const [ordersError, setOrdersError] = useState<string>("");
 
+  const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [addressModalLoading, setAddressModalLoading] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<ShippingAddress | null>(null);
+  const emptyAddressForm: Omit<ShippingAddress, "id"> = {
+    fullName: "",
+    phone: "",
+    addressLine: "",
+    ward: "",
+    district: "",
+    city: "",
+    label: "",
+    note: "",
+    isDefault: false,
+  };
+  const [addressForm, setAddressForm] = useState<Omit<ShippingAddress, "id">>(
+    emptyAddressForm
+  );
+
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -53,8 +73,10 @@ const ProfilePage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
 
-  const { logout } = useAuth();
+  const { logout, user: authUser } = useAuth();
   const navigate = useNavigate();
+  const isSelf =
+    !!authUser && (authUser._id === id || authUser.id === id);
 
   useEffect(() => {
     if (!id) return;
@@ -94,6 +116,129 @@ const ProfilePage: React.FC = () => {
 
     fetchOrders();
   }, [id]);
+
+  const fetchAddresses = useCallback(async () => {
+    if (!isSelf) return;
+    try {
+      const res = await axiosInstance.get("/user/addresses/me");
+      setAddresses(res.data || []);
+    } catch (err) {
+      console.error("Lỗi tải địa chỉ:", err);
+    }
+  }, [isSelf]);
+
+  useEffect(() => {
+    if (isSelf) {
+      fetchAddresses();
+    }
+  }, [isSelf, fetchAddresses]);
+
+  const defaultAddress = useMemo(
+    () =>
+      addresses.find((address) => address.isDefault) ||
+      addresses[0] ||
+      null,
+    [addresses]
+  );
+
+  const openAddressModal = (address?: ShippingAddress) => {
+    if (address) {
+      setEditingAddress(address);
+      const { id: _id, ...rest } = address;
+      setAddressForm({ ...emptyAddressForm, ...rest });
+    } else {
+      setEditingAddress(null);
+      setAddressForm({
+        ...emptyAddressForm,
+        isDefault: addresses.length === 0,
+      });
+    }
+    setIsAddressModalOpen(true);
+  };
+
+  const closeAddressModal = () => {
+    setIsAddressModalOpen(false);
+    setEditingAddress(null);
+    setAddressForm(emptyAddressForm);
+    setAddressModalLoading(false);
+  };
+
+  const handleAddressFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setAddressForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleAddressCheckbox = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setAddressForm((prev) => ({
+      ...prev,
+      isDefault: e.target.checked,
+    }));
+  };
+
+  const handleSaveAddress = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!addressForm.fullName?.trim() || !addressForm.phone?.trim() || !addressForm.addressLine?.trim()) {
+      alert("Vui lòng nhập đầy đủ Họ tên, Số điện thoại và Địa chỉ.");
+      return;
+    }
+
+    try {
+      setAddressModalLoading(true);
+      if (editingAddress) {
+        await axiosInstance.patch(
+          `/user/addresses/${editingAddress.id}`,
+          addressForm
+        );
+      } else {
+        await axiosInstance.post("/user/addresses", addressForm);
+      }
+      await fetchAddresses();
+      closeAddressModal();
+    } catch (err: any) {
+      console.error("Lưu địa chỉ thất bại:", err);
+      alert(err.response?.data?.message || "Không thể lưu địa chỉ.");
+      setAddressModalLoading(false);
+    }
+  };
+
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) return;
+    try {
+      await axiosInstance.delete(`/user/addresses/${addressId}`);
+      fetchAddresses();
+    } catch (err) {
+      console.error("Xóa địa chỉ thất bại:", err);
+      alert("Không thể xóa địa chỉ. Vui lòng thử lại.");
+    }
+  };
+
+  const handleSetDefaultAddress = async (addressId: string) => {
+    try {
+      await axiosInstance.post(`/user/addresses/${addressId}/default`);
+      fetchAddresses();
+    } catch (err) {
+      console.error("Đặt mặc định thất bại:", err);
+      alert("Không thể đặt địa chỉ mặc định.");
+    }
+  };
+
+  const formatAddressLine = (address: ShippingAddress) => {
+    return [
+      address.addressLine,
+      address.ward,
+      address.district,
+      address.city,
+    ]
+      .filter(Boolean)
+      .join(", ");
+  };
 
   // ============================
   // Handle Input Change
@@ -277,7 +422,7 @@ const ProfilePage: React.FC = () => {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Địa chỉ giao hàng
+                Địa chỉ giao hàng (Legacy)
               </label>
               <input
                 type="text"
@@ -287,6 +432,9 @@ const ProfilePage: React.FC = () => {
                 disabled={!editMode}
                 className="w-full px-4 py-2 border rounded-lg disabled:bg-gray-100"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Bạn có thể quản lý nhiều địa chỉ bên dưới và chọn địa chỉ mặc định cho các đơn hàng.
+              </p>
             </div>
 
             {/* Gender */}
@@ -306,6 +454,94 @@ const ProfilePage: React.FC = () => {
                 <option value="Female">Nữ</option>
               </select>
             </div>
+            {isSelf && (
+              <div className="mt-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700">
+                      Sổ địa chỉ giao hàng
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Đặt một địa chỉ làm mặc định để sử dụng nhanh khi đặt hàng.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => openAddressModal()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+                  >
+                    + Thêm địa chỉ
+                  </button>
+                </div>
+
+                {addresses.length === 0 ? (
+                  <div className="p-4 border border-dashed rounded-lg text-sm text-gray-500 bg-gray-50">
+                    Bạn chưa có địa chỉ nào. Nhấn \"Thêm địa chỉ\" để tạo mới.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {addresses.map((address) => {
+                      const isDefault = address.isDefault;
+                      return (
+                        <div
+                          key={address.id}
+                          className={`border rounded-xl p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 ${
+                            isDefault
+                              ? "border-blue-500 bg-blue-50/60"
+                              : "border-gray-200 bg-white"
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-semibold text-gray-800">
+                                {address.fullName}
+                              </p>
+                              {isDefault && (
+                                <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                                  Mặc định
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600">
+                              {address.phone}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {formatAddressLine(address)}
+                            </p>
+                            {address.note && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Ghi chú: {address.note}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-2 text-sm">
+                            <button
+                              onClick={() => openAddressModal(address)}
+                              className="px-3 py-1 border rounded-lg hover:bg-gray-100"
+                            >
+                              Chỉnh sửa
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAddress(address.id)}
+                              className="px-3 py-1 border border-red-200 text-red-600 rounded-lg hover:bg-red-50"
+                            >
+                              Xóa
+                            </button>
+                            {!isDefault && (
+                              <button
+                                onClick={() => handleSetDefaultAddress(address.id)}
+                                className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                              >
+                                Đặt mặc định
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
 
@@ -497,6 +733,121 @@ const ProfilePage: React.FC = () => {
           )}
         </div>
       </div>
+      {isAddressModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <form
+            onSubmit={handleSaveAddress}
+            className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-lg space-y-4"
+          >
+            <h2 className="text-xl font-semibold text-center">
+              {editingAddress ? "Chỉnh sửa địa chỉ" : "Thêm địa chỉ mới"}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Họ và tên</label>
+                <input
+                  name="fullName"
+                  value={addressForm.fullName}
+                  onChange={handleAddressFormChange}
+                  className="w-full mt-1 px-3 py-2 border rounded-lg"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Số điện thoại</label>
+                <input
+                  name="phone"
+                  value={addressForm.phone}
+                  onChange={handleAddressFormChange}
+                  className="w-full mt-1 px-3 py-2 border rounded-lg"
+                  required
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-sm font-medium text-gray-700">Địa chỉ</label>
+                <input
+                  name="addressLine"
+                  value={addressForm.addressLine}
+                  onChange={handleAddressFormChange}
+                  className="w-full mt-1 px-3 py-2 border rounded-lg"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Phường/Xã</label>
+                <input
+                  name="ward"
+                  value={addressForm.ward}
+                  onChange={handleAddressFormChange}
+                  className="w-full mt-1 px-3 py-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Quận/Huyện</label>
+                <input
+                  name="district"
+                  value={addressForm.district}
+                  onChange={handleAddressFormChange}
+                  className="w-full mt-1 px-3 py-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Tỉnh/Thành phố</label>
+                <input
+                  name="city"
+                  value={addressForm.city}
+                  onChange={handleAddressFormChange}
+                  className="w-full mt-1 px-3 py-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Nhãn</label>
+                <input
+                  name="label"
+                  value={addressForm.label}
+                  onChange={handleAddressFormChange}
+                  placeholder="Nhà riêng, Văn phòng..."
+                  className="w-full mt-1 px-3 py-2 border rounded-lg"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-sm font-medium text-gray-700">Ghi chú</label>
+                <textarea
+                  name="note"
+                  value={addressForm.note}
+                  onChange={handleAddressFormChange}
+                  className="w-full mt-1 px-3 py-2 border rounded-lg"
+                  rows={2}
+                />
+              </div>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={addressForm.isDefault || false}
+                onChange={handleAddressCheckbox}
+              />
+              Đặt làm địa chỉ mặc định
+            </label>
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={closeAddressModal}
+                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={addressModalLoading}
+                className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {addressModalLoading ? "Đang lưu..." : "Lưu địa chỉ"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

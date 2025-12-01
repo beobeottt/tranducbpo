@@ -1,12 +1,13 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from './schema/user.schema'; 
+import { User, UserDocument } from './schema/user.schema';
 import { Model, Types } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto'; 
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateGoogleUserDto } from './dto/create-google-user.dto';
 import { Product } from 'src/product/schema/product.schema';
+import { ShippingAddressDto, UpdateShippingAddressDto } from './dto/shipping-address.dto';
 
 @Injectable()
 export class UserService {
@@ -99,5 +100,114 @@ export class UserService {
     if (!result) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+  }
+
+  async getShippingAddresses(userId: string) {
+    const user = await this.userModel.findById(userId).lean();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user.shippingAddresses || [];
+  }
+
+  async addShippingAddress(userId: string, dto: ShippingAddressDto) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const addresses = user.shippingAddresses ?? [];
+    const newAddress = {
+      id: dto.id || new Types.ObjectId().toString(),
+      label: dto.label,
+      fullName: dto.fullName,
+      phone: dto.phone,
+      addressLine: dto.addressLine,
+      ward: dto.ward,
+      district: dto.district,
+      city: dto.city,
+      note: dto.note,
+      isDefault: dto.isDefault ?? addresses.length === 0,
+    };
+
+    if (newAddress.isDefault) {
+      addresses.forEach((addr: any) => (addr.isDefault = false));
+    }
+
+    addresses.push(newAddress as any);
+    user.shippingAddresses = addresses;
+    await user.save();
+    return user.shippingAddresses;
+  }
+
+  async updateShippingAddress(
+    userId: string,
+    addressId: string,
+    dto: UpdateShippingAddressDto,
+  ) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const addresses = user.shippingAddresses ?? [];
+    const target = addresses.find((addr: any) => addr.id === addressId);
+    if (!target) {
+      throw new NotFoundException('Address not found');
+    }
+
+    Object.assign(target, dto);
+    if (dto.isDefault) {
+      addresses.forEach((addr: any) => {
+        addr.isDefault = addr.id === addressId;
+      });
+    }
+
+    user.shippingAddresses = addresses;
+    await user.save();
+    return user.shippingAddresses;
+  }
+
+  async removeShippingAddress(userId: string, addressId: string) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const addresses = user.shippingAddresses ?? [];
+    const index = addresses.findIndex((addr: any) => addr.id === addressId);
+    if (index === -1) {
+      throw new NotFoundException('Address not found');
+    }
+
+    const removed = addresses.splice(index, 1)[0];
+
+    if (removed?.isDefault && addresses.length > 0) {
+      addresses[0].isDefault = true;
+    }
+
+    user.shippingAddresses = addresses;
+    await user.save();
+    return user.shippingAddresses;
+  }
+
+  async setDefaultShippingAddress(userId: string, addressId: string) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const addresses = user.shippingAddresses ?? [];
+    const target = addresses.find((addr: any) => addr.id === addressId);
+    if (!target) {
+      throw new NotFoundException('Address not found');
+    }
+
+    addresses.forEach((addr: any) => {
+      addr.isDefault = addr.id === addressId;
+    });
+    user.shippingAddresses = addresses;
+    await user.save();
+    return user.shippingAddresses;
   }
 }

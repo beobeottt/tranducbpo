@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Order, OrderDocument } from './schema/order.schema';
@@ -6,6 +10,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { User, UserDocument } from 'src/user/schema/user.schema';
 import { CartItem, CartItemDocument } from 'src/cart/schema/cart-item.schema';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class OrderService {
@@ -13,6 +18,7 @@ export class OrderService {
       @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
       @InjectModel(User.name) private userModel: Model<UserDocument>,
       @InjectModel(CartItem.name) private cartItemModel: Model<CartItemDocument>,
+      private readonly mailService: MailService,
     ) {}
 
     async create(createOrderDto: CreateOrderDto): Promise<Order>
@@ -34,7 +40,26 @@ export class OrderService {
           timestamp: new Date(),
         };
 
-        const { pointsToRedeem, ...payload } = createOrderDto;
+        const {
+          pointsToRedeem,
+          shippingAddressId,
+          shippingAddress: shippingAddressPayload,
+          ...payload
+        } = createOrderDto;
+
+        const shippingAddress =
+          this.resolveShippingAddress(
+            user,
+            shippingAddressId,
+            shippingAddressPayload,
+          );
+
+        if (!shippingAddress) {
+          throw new BadRequestException(
+            'Vui lòng chọn địa chỉ giao hàng trước khi đặt hàng.',
+          );
+        }
+
         const newOrder = new this.orderModel({
           ...payload,
           totalPrice: itemTotal,
@@ -42,6 +67,7 @@ export class OrderService {
           pointsRedeemed: usablePoints,
           pointsEarned,
           statusHistory: [statusHistoryEntry],
+          shippingAddress,
         });
 
         await newOrder.save();
@@ -58,6 +84,18 @@ export class OrderService {
             userId: new Types.ObjectId(createOrderDto.userId),
             productId: { $in: productIds },
           });
+        }
+
+        if (user.email) {
+          this.mailService
+            .sendOrderConfirmationEmail(user.email, {
+              order: newOrder,
+              shippingAddress,
+              user,
+            })
+            .catch((err) =>
+              console.warn('Failed to send order confirmation email:', err),
+            );
         }
 
         return newOrder;
@@ -110,5 +148,75 @@ export class OrderService {
     const deleted = await this.orderModel.findByIdAndDelete(id).exec();
     if (!deleted) throw new NotFoundException(`Order with id ${id} not found`);
     return { deleted: true };
+  }
+
+  private resolveShippingAddress(
+    user: UserDocument,
+    addressId?: string,
+    fallback?: {
+      fullName?: string;
+      phone?: string;
+      addressLine?: string;
+      ward?: string;
+      district?: string;
+      city?: string;
+      note?: string;
+    },
+  ) {
+    if (fallback?.addressLine) {
+      return {
+        fullName: fallback.fullName || user.fullname,
+        phone: fallback.phone || '',
+        addressLine: fallback.addressLine,
+        ward: fallback.ward,
+        district: fallback.district,
+        city: fallback.city,
+        note: fallback.note,
+      };
+    }
+
+    if (addressId) {
+      const match = user.shippingAddresses?.find(
+        (addr: any) => addr.id === addressId,
+      );
+      if (!match) {
+        throw new NotFoundException('Không tìm thấy địa chỉ giao hàng.');
+      }
+      return {
+        fullName: match.fullName,
+        phone: match.phone,
+        addressLine: match.addressLine,
+        ward: match.ward,
+        district: match.district,
+        city: match.city,
+        note: match.note,
+      };
+    }
+
+    const defaultAddress =
+      user.shippingAddresses?.find((addr: any) => addr.isDefault) ||
+      user.shippingAddresses?.[0];
+
+    if (defaultAddress) {
+      return {
+        fullName: defaultAddress.fullName,
+        phone: defaultAddress.phone,
+        addressLine: defaultAddress.addressLine,
+        ward: defaultAddress.ward,
+        district: defaultAddress.district,
+        city: defaultAddress.city,
+        note: defaultAddress.note,
+      };
+    }
+
+    if (user.shippingAddress) {
+      return {
+        fullName: user.fullname,
+        phone: '',
+        addressLine: user.shippingAddress,
+      };
+    }
+
+    return null;
   }
 }

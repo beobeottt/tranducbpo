@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axiosInstance from "../../api/axios";
 import NavBar from "../../components/NavBar";
@@ -24,7 +24,7 @@ const ProductDetail: React.FC = () => {
   const [error, setError] = useState("");
   const [qty, setQty] = useState(1);
   const [addedMessage, setAddedMessage] = useState<string | null>(null);
-  
+
   // Review states
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
@@ -33,29 +33,70 @@ const ProductDetail: React.FC = () => {
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
 
+  // Variant state
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+
+  const selectedVariant = useMemo(() => {
+    if (!product?.variants || !selectedVariantId) return null;
+    return (
+      product.variants.find(
+        (variant) => (variant.id || variant.label) === selectedVariantId
+      ) || null
+    );
+  }, [product?.variants, selectedVariantId]);
+
+  const currentPrice = selectedVariant?.price ?? product?.price ?? 0;
+  const currentStock = selectedVariant?.quantity ?? product?.quantity ?? 0;
 
   // TĂNG/GIẢM SỐ LƯỢNG
   const handleQtyChange = (newQty: number) => {
     if (newQty < 1) return;
-    if (product && newQty > product.quantity) {
-      alert(`Chỉ còn ${product.quantity} sản phẩm!`);
+    const limit = currentStock || 0;
+    if (limit > 0 && newQty > limit) {
+      alert(`Chỉ còn ${limit} sản phẩm!`);
+      setQty(limit);
       return;
     }
     setQty(newQty);
+  };
+
+  const handleVariantSelect = (variantKey: string) => {
+    if (!variantKey) return;
+    setSelectedVariantId(variantKey);
+    const matched = product?.variants?.find(
+      (variant) => (variant.id || variant.label) === variantKey
+    );
+    if (matched?.quantity && qty > matched.quantity) {
+      setQty(Math.max(1, matched.quantity));
+    }
   };
 
   // THÊM VÀO GIỎ HÀNG
   const handleAddToCart = async () => {
     if (!product) return;
 
+    if (product.variants?.length && !selectedVariant) {
+      alert("Vui lòng chọn phiên bản sản phẩm trước khi thêm vào giỏ.");
+      return;
+    }
+
+    if (currentStock === 0) {
+      alert("Phiên bản này hiện đã hết hàng.");
+      return;
+    }
+
     const token = localStorage.getItem("token");
 
     const cartItem = {
       productId: product._id,
-      productName: product.productName,
-      price: product.price,
+      productName: selectedVariant
+        ? `${product.productName} - ${selectedVariant.label}`
+        : product.productName,
+      price: currentPrice,
       quantity: qty,
       image: product.img,
+      variantId: selectedVariant?.id || selectedVariant?.label,
+      variantLabel: selectedVariant?.label,
     };
 
     if (token) {
@@ -63,22 +104,34 @@ const ProductDetail: React.FC = () => {
         await axiosInstance.post("/cart", cartItem, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setAddedMessage(`Đã thêm ${qty} ${product.productName} vào giỏ!`);
+        setAddedMessage(
+          `Đã thêm ${qty} ${
+            selectedVariant ? `${product.productName} (${selectedVariant.label})` : product.productName
+          } vào giỏ!`
+        );
       } catch (err) {
         setAddedMessage("Lỗi server! Không thể thêm.");
       }
     } else {
       const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-      const existingIndex = cart.findIndex((item: any) => item.productId === product._id);
+      const existingIndex = cart.findIndex(
+        (item: any) =>
+          item.productId === cartItem.productId &&
+          (item.variantId || null) === (cartItem.variantId || null)
+      );
 
       if (existingIndex >= 0) {
         cart[existingIndex].quantity += qty;
       } else {
-        cart.push({ ...cartItem, productId: `local_${Date.now()}` });
+        cart.push({ ...cartItem });
       }
 
       localStorage.setItem("cart", JSON.stringify(cart));
-      setAddedMessage(`Đã thêm ${qty} ${product.productName} (local)!`);
+      setAddedMessage(
+        `Đã thêm ${qty} ${
+          selectedVariant ? `${product.productName} (${selectedVariant.label})` : product.productName
+        } (local)!`
+      );
     }
 
     // Tự ẩn sau 2s
@@ -107,6 +160,17 @@ const ProductDetail: React.FC = () => {
       })
       .finally(() => setLoadingReviews(false));
   }, [id]);
+
+  useEffect(() => {
+    if (product?.variants?.length) {
+      const firstAvailable =
+        product.variants.find((variant) => (variant.quantity ?? 0) > 0) ||
+        product.variants[0];
+      setSelectedVariantId(firstAvailable?.id || firstAvailable?.label || null);
+    } else {
+      setSelectedVariantId(null);
+    }
+  }, [product?._id, product?.variants?.length]);
 
   // SUBMIT REVIEW
   const handleSubmitReview = async (e: React.FormEvent) => {
@@ -155,6 +219,10 @@ const ProductDetail: React.FC = () => {
       </div>
     );
 
+  const productImage = selectedVariant?.image
+    ? getImageUrl(selectedVariant.image)
+    : getImageUrl(product.img);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
@@ -172,7 +240,7 @@ const ProductDetail: React.FC = () => {
             {/* Ảnh */}
             <div className="flex justify-center">
               <img
-                src={getImageUrl(product.img)}
+                src={productImage}
                 alt={product.productName}
                 className="w-full max-w-md h-96 object-cover rounded-xl shadow-md hover:scale-105 transition duration-300"
               />
@@ -191,13 +259,13 @@ const ProductDetail: React.FC = () => {
 
                 <div className="space-y-4">
                   <p className="text-3xl font-bold text-orange-600">
-                    {product.price.toLocaleString("vi-VN")} ₫
+                    {currentPrice.toLocaleString("vi-VN")} ₫
                   </p>
 
                   <p className="text-sm text-gray-500">
                     Còn lại:{" "}
                     <span className="font-bold text-green-600">
-                      {product.quantity} sản phẩm
+                      {currentStock} sản phẩm
                     </span>
                   </p>
 
@@ -213,6 +281,42 @@ const ProductDetail: React.FC = () => {
                       {product.typeProduct}
                     </span>
                   </div>
+
+                  {product.variants && product.variants.length > 0 && (
+                    <div className="mt-6 space-y-3">
+                      <p className="font-semibold text-gray-700">Chọn phiên bản:</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {product.variants.map((variant) => {
+                          const key = variant.id || variant.label;
+                          const isSelected = selectedVariantId === key;
+                          const outOfStock = (variant.quantity ?? 0) === 0;
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => handleVariantSelect(key || "")}
+                              disabled={outOfStock}
+                              className={`text-left border rounded-xl p-4 transition ${
+                                isSelected
+                                  ? "border-blue-600 bg-blue-50"
+                                  : "border-gray-200 bg-white hover:border-blue-300"
+                              } ${outOfStock ? "opacity-60 cursor-not-allowed" : ""}`}
+                            >
+                              <div className="font-semibold text-gray-800">{variant.label}</div>
+                              <div className="text-sm text-gray-500">
+                                {variant.price.toLocaleString("vi-VN")} ₫
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {outOfStock
+                                  ? "Hết hàng"
+                                  : `Còn ${variant.quantity ?? 0} sản phẩm`}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -236,7 +340,7 @@ const ProductDetail: React.FC = () => {
                     onChange={(e) => handleQtyChange(Number(e.target.value))}
                     className="w-20 text-center border-2 border-gray-300 rounded-lg py-2 text-lg font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     min="1"
-                    max={product.quantity}
+                    max={currentStock || undefined}
                   />
 
                   <button

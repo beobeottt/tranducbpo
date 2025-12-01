@@ -1,4 +1,37 @@
-import { IsString, IsNumber, IsInt, IsOptional, IsIn } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsInt,
+  IsOptional,
+  IsIn,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+class ProductVariantDto {
+  @IsOptional()
+  @IsString()
+  id?: string;
+
+  @IsString()
+  label: string;
+
+  @IsNumber()
+  price: number;
+
+  @IsInt()
+  @IsOptional()
+  quantity?: number;
+
+  @IsOptional()
+  @IsString()
+  sku?: string;
+
+  @IsOptional()
+  @IsString()
+  image?: string;
+}
 
 export class CreateProductDto {
   @IsString()
@@ -23,4 +56,10 @@ export class CreateProductDto {
   @IsOptional()
   @IsString()
   img?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductVariantDto)
+  variants?: ProductVariantDto[];
 }

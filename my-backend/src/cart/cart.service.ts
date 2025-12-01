@@ -29,6 +29,7 @@ export class CartService {
     const existingItem = await this.cartItemModel.findOne({
       userId: new Types.ObjectId(userId),
       productId,
+      variantId: dto.variantId || null,
     });
 
     if (existingItem) {
@@ -43,6 +44,8 @@ export class CartService {
       productId,
       productName,
       price,
+      variantId: dto.variantId,
+      variantLabel: dto.variantLabel,
       quantity,
       image: dto.url || '',
       shopName: dto.shopName || '',
@@ -120,6 +123,7 @@ export class CartService {
       const existingItem = await this.cartItemModel.findOne({
         userId: new Types.ObjectId(userId),
         productId: item.productId,
+        variantId: item.variantId || null,
       });
 
       if (existingItem) {
